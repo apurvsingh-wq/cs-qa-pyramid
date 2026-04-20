@@ -130,6 +130,17 @@
   .collapsible-content { display: none; padding-left: 16px; }
   .collapsible-content.open { display: block; }
 
+  /* Screenshots */
+  .screenshot-gallery { display: flex; gap: 16px; overflow-x: auto; padding: 16px 0; }
+  .screenshot-frame { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px; flex-shrink: 0; text-align: center; }
+  .screenshot-frame img { max-height: 420px; border-radius: 8px; display: block; margin: 0 auto; }
+  .screenshot-frame .caption { font-size: 11px; color: var(--text-muted); margin-top: 8px; text-align: center; }
+  .screenshot-inline { max-height: 320px; border-radius: 8px; border: 1px solid var(--border); margin: 8px 0; }
+  .screenshot-lightbox { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; cursor: pointer; }
+  .screenshot-lightbox img { max-height: 90vh; max-width: 90vw; border-radius: 12px; }
+  .screenshot-frame img { cursor: pointer; transition: transform 0.15s; }
+  .screenshot-frame img:hover { transform: scale(1.02); }
+
   /* Responsive */
   @media (max-width: 768px) {
     .layout { flex-direction: column; }
@@ -311,6 +322,37 @@
         </div>
       </div>
 
+      <!-- Screenshots Gallery -->
+      <div class="subsection">
+        <h4>Live Screenshots (from device)</h4>
+        <div class="screenshot-gallery">
+          <div class="screenshot-frame">
+            <img src="screenshots/verification-pending.png" alt="Verification Pending" onclick="openLightbox(this.src)">
+            <div class="caption">Verification Pending<br>ETA: 2 mins | 3-step stepper</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/payment-trouble.png" alt="Payment Trouble Banner" onclick="openLightbox(this.src)">
+            <div class="caption">Trouble Banner<br>"₹1,500 is facing trouble"</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-verify-phonepe.png" alt="UTR Verify - PhonePe" onclick="openLightbox(this.src)">
+            <div class="caption">UTR Verify (PhonePe)<br>12-digit UTR input + mockup</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-verify-gpay.png" alt="UTR Verify - Google Pay" onclick="openLightbox(this.src)">
+            <div class="caption">UTR Verify (Google Pay)<br>Per-app education carousel</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-education.png" alt="How to Find UTR" onclick="openLightbox(this.src)">
+            <div class="caption">UTR Education<br>"12-digit number" guide</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/help-support-equitas.png" alt="Help & Support - Equitas Alert" onclick="openLightbox(this.src)">
+            <div class="caption">Help & Support<br>Equitas Bank deprecation alert</div>
+          </div>
+        </div>
+      </div>
+
       <div id="screen-detail"></div>
     </div>
 
@@ -433,6 +475,10 @@
             <tr><td style="color:var(--text-muted)">Deprecation</td><td style="color:var(--red);">"Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience."</td></tr>
             <tr><td style="color:var(--text-muted)">Impact</td><td>Users must switch beneficiary to Karnataka Bank VA. IMPS-only limitation was a pain point.</td></tr>
           </table>
+          <div style="margin-top:12px;">
+            <img src="screenshots/help-support-equitas.png" alt="Equitas Deprecation Alert" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Live screenshot: Help & Support showing Equitas Bank deprecation alert</div>
+          </div>
         </div>
       </div>
 
@@ -516,6 +562,17 @@
             <div class="step-dot" style="background:var(--red);"></div>
             <div class="step-line" style="background:transparent;"></div>
             <div class="step-content"><div class="step-title" style="color:var(--red);">FAILED</div><div class="step-desc">Terminal state. Payment failed. "Verify Payment" CTA → UTR flow. Red icon. Contact Support.</div></div>
+          </div>
+        </div>
+
+        <div class="screenshot-gallery" style="margin:16px 0;">
+          <div class="screenshot-frame">
+            <img src="screenshots/verification-pending.png" alt="Verification Pending" onclick="openLightbox(this.src)">
+            <div class="caption">PENDING state — "Verification Pending, ETA: 2 mins"</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/payment-trouble.png" alt="Payment Trouble" onclick="openLightbox(this.src)">
+            <div class="caption">FAILED state → Trouble Banner on Home</div>
           </div>
         </div>
 
@@ -714,6 +771,20 @@ Home banner uses timeRemaining for "04 min: 26 sec" display</div>
         <div class="highlight">
           The app shows a swipeable phone mockup carousel teaching users how to find UTR in their UPI app. Bottom tabs: GPay | PhonePe | Paytm | Amazon Pay
         </div>
+        <div class="screenshot-gallery" style="margin-bottom:16px;">
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-verify-phonepe.png" alt="UTR - PhonePe" onclick="openLightbox(this.src)">
+            <div class="caption">PhonePe selected — UTR in red box</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-verify-gpay.png" alt="UTR - Google Pay" onclick="openLightbox(this.src)">
+            <div class="caption">Google Pay selected — UTR in bank details</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/utr-education.png" alt="UTR Education" onclick="openLightbox(this.src)">
+            <div class="caption">"How to Find UTR Details?" educational page</div>
+          </div>
+        </div>
         <div class="card-grid">
           <div class="card">
             <h4>Google Pay</h4>
@@ -838,7 +909,22 @@ If data is null → route to SUPPORT page</div>
   </main>
 </div>
 
+<!-- Lightbox -->
+<div class="screenshot-lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Screenshot">
+</div>
+
 <script>
+  function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.style.display = 'flex';
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+  }
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLightbox(); });
+
   // Tab switching
   function showTab(tabName) {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -868,7 +954,7 @@ If data is null → route to SUPPORT page</div>
     'trouble-banner': {
       title: 'Home — Trouble Banner',
       type: 'HOME',
-      desc: '"Payment of ₹1,500 is facing trouble" with warning triangle icon. Replaces ongoing txn banner when deposit is stuck (FAILED/DELAYED). "Verify Payment >" CTA routes to UTR verification.',
+      desc: '"Payment of ₹1,500 is facing trouble" with warning triangle icon. Replaces ongoing txn banner when deposit is stuck (FAILED/DELAYED). "Verify Payment >" CTA routes to UTR verification.<br><br><img src="screenshots/payment-trouble.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'Same as ongoing txn — stage_status determines which banner shows. FAILED → trouble banner.',
       nav: '"Verify Payment" → UTR Verification screen',
       source: 'Transformer: home/green/utils/utils.js (isFailedDepositCardVisible logic)'
@@ -916,7 +1002,7 @@ If data is null → route to SUPPORT page</div>
     'deposit-status': {
       title: 'UPI Deposit Status',
       type: 'UPI',
-      desc: 'Final status screen. Stepper shows current state. "Verification Pending - ETA: 2 mins" with orange badge. Subtitle: "Verification can take upto 40 hours". Details card: Amount, Initiated Date, UPI ID, Reference ID (copyable). "Help" link top-right. "Go Back" green button.',
+      desc: 'Final status screen. Stepper shows current state. "Verification Pending - ETA: 2 mins" with orange badge. Subtitle: "Verification can take upto 40 hours". Details card: Amount, Initiated Date, UPI ID, Reference ID (copyable). "Help" link top-right. "Go Back" green button.<br><br><img src="screenshots/verification-pending.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'POST /api/v1/payment-service/deposit-details/fetch → status_map array\nTransformer: getUpdatedDepositStatusDetailsData() builds stepper',
       nav: '"Help" → Help & Support | "Go Back" → Wallet | If trouble → UTR Verify',
       source: 'RN: App/src/Containers/UpiDepositStatus/index.tsx\nTransformer: payments/util.js:1245 (getUpdatedDepositStatusDetailsData)'
@@ -924,7 +1010,7 @@ If data is null → route to SUPPORT page</div>
     'utr-verify': {
       title: 'UTR Verification',
       type: 'RECOVERY',
-      desc: '"Verify UTR" section with text input: "Enter UTR Number" + green arrow submit. "How to get UTR? Know More" link → educational screen. Phone mockup carousel showing UTR location in GPay, PhonePe, Paytm, Amazon Pay. UTR is 12-digit bank reference number.',
+      desc: '"Verify UTR" section with text input: "Enter UTR Number" + green arrow submit. "How to get UTR? Know More" link → educational screen. Phone mockup carousel showing UTR location in GPay, PhonePe, Paytm, Amazon Pay. UTR is 12-digit bank reference number.<br><br><div style="display:flex;gap:8px;overflow-x:auto;"><img src="screenshots/utr-verify-phonepe.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)"><img src="screenshots/utr-verify-gpay.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)"><img src="screenshots/utr-education.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)"></div>',
       api: 'POST /api/v1/payment-service/deposit-details/fetch-from-utr → should_process_refund, should_process_deposit, cta_use_case\nRefund: POST /api/v1/payment-service/deposit-details/sync-refund-for-utr',
       nav: 'UTR found + deposit → Auto-credit | UTR found + refund → Bank details form | Not found → Support',
       source: 'Transformer: payments/index.js:2366 (fetchUTRStatus)\nTransformer: payments/index.js:2611 (initiateRefund)'
@@ -940,7 +1026,7 @@ If data is null → route to SUPPORT page</div>
     'help-support': {
       title: 'Help & Support',
       type: 'SUPPORT',
-      desc: 'Orange alert banner: "Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience." 24x7 support. Categories: Crypto. Search icon top-right.',
+      desc: 'Orange alert banner: "Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience." 24x7 support. Categories: Crypto. Search icon top-right.<br><br><img src="screenshots/help-support-equitas.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'Layout fetched from backend',
       nav: '"Crypto" → Support articles | Back → previous screen',
       source: 'RN: App/src/Containers/HelpAndSupport/'
