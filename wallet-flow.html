@@ -357,6 +357,30 @@
             <img src="screenshots/help-support-equitas.png" alt="Help & Support - Equitas Alert" onclick="openLightbox(this.src)">
             <div class="caption">Help & Support<br>Equitas Bank deprecation alert</div>
           </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/deposit-form.png" alt="Deposit Form" onclick="openLightbox(this.src)">
+            <div class="caption">Deposit Form<br>₹500, limits, Equitas alert</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/upi-selection.png" alt="UPI Selection" onclick="openLightbox(this.src)">
+            <div class="caption">UPI Selection<br>GPay IDs + Pay ₹500</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/home-wallet-strip.png" alt="Home - Wallet Strip" onclick="openLightbox(this.src)">
+            <div class="caption">Home Screen<br>Wallet strip + Ongoing Txn</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/bank-transfer-va-shivalik.png" alt="VA - Shivalik Primary" onclick="openLightbox(this.src)">
+            <div class="caption">Primary VA<br>Shivalik Bank (Recommended)</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/bank-transfer-va-indian-bank.png" alt="VA - Indian Bank Alternate" onclick="openLightbox(this.src)">
+            <div class="caption">Alternate VA<br>Indian Bank</div>
+          </div>
+          <div class="screenshot-frame">
+            <img src="screenshots/add-payee-icici-step1.png" alt="Add Payee - ICICI" onclick="openLightbox(this.src)">
+            <div class="caption">Add Payee Guide<br>ICICI iMobile steps</div>
+          </div>
         </div>
       </div>
 
@@ -450,10 +474,32 @@
         <h4>Bank / VA Providers</h4>
 
         <div class="vendor-card">
-          <h4>Karnataka Bank <span class="badge badge-active">ACTIVE — PRIMARY</span></h4>
+          <h4>Shivalik Small Finance Bank <span class="badge badge-active">ACTIVE — PRIMARY VA</span></h4>
           <table>
-            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Payment acquirer — UPI + Bank Transfer (Virtual Account)</td></tr>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Primary VA provider for Bank Transfer deposits</td></tr>
             <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>NEFT, RTGS, IMPS</strong> (all supported)</td></tr>
+            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>SMCB0000CMS</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: 2550 0081 4711 2751</td></tr>
+            <tr><td style="color:var(--text-muted)">Tag</td><td style="color:var(--green);font-weight:600;">RECOMMENDED</td></tr>
+            <tr><td style="color:var(--text-muted)">Time Restriction</td><td style="color:var(--orange);">Unavailable from 10:00 PM – 06:00 AM</td></tr>
+          </table>
+        </div>
+
+        <div class="vendor-card">
+          <h4>Indian Bank <span class="badge badge-active">ACTIVE — ALTERNATE VA</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Alternate VA provider for Bank Transfer deposits</td></tr>
+            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>NEFT, RTGS, IMPS</strong> (all supported)</td></tr>
+            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>IDIB000B198</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: COINSW 8147 1127 51</td></tr>
+            <tr><td style="color:var(--text-muted)">Availability</td><td style="color:var(--green);">24/7 — no time restrictions</td></tr>
+          </table>
+        </div>
+
+        <div class="vendor-card">
+          <h4>Karnataka Bank <span class="badge badge-active">ACTIVE — UPI ACQUIRER</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>UPI payment acquirer — processes UPI deposits</td></tr>
             <tr><td style="color:var(--text-muted)">UPI VPAs (6)</td><td>
               <div class="vendor-vpas">
                 <span class="vpa-chip">csvda@kbl</span>
@@ -464,8 +510,7 @@
                 <span class="vpa-chip">bldeposit6@kbl</span>
               </div>
             </td></tr>
-            <tr><td style="color:var(--text-muted)">VA Beneficiary</td><td>CoinSwitch account at Karnataka Bank — user adds as payee in their bank app</td></tr>
-            <tr><td style="color:var(--text-muted)">Notes</td><td>Primary vendor handling 6 of 7 payment VPAs. Supports all transfer types.</td></tr>
+            <tr><td style="color:var(--text-muted)">Notes</td><td>Handles 6 of 7 UPI VPAs. User's UPI payment goes to these VPAs.</td></tr>
           </table>
         </div>
 
@@ -789,29 +834,35 @@ Home banner uses timeRemaining for "04 min: 26 sec" display</div>
               <div class="step-title">Step 5: Show VA Beneficiary Details</div>
               <div class="step-desc">
                 <strong>Bank Transfer Screen</strong> — displays 1 or 2 VA accounts (primary + secondary):<br><br>
-                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin:8px 0;">
+                <div style="background:var(--surface2);border:1px solid var(--green);border-radius:8px;padding:16px;margin:8px 0;">
                   <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Tag</span><span style="color:var(--green);font-weight:600;">RECOMMENDED</span></div>
                   <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Header</span><span>Primary Bank Account</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary Name</span><span>BitCipher LLP</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary</span><span>BitCipher LLP</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Bank Name</span><span><strong>Shivalik Small Finance Bank</strong></span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">2550 0081 4711 2751</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">IFSC Code</span><span style="font-family:monospace;">SMCB0000CMS</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Type</span><span>Current</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Transfer Methods</span><span style="color:var(--green);">IMPS, NEFT & RTGS accepted</span></div>
+                  <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Time Restriction</span><span style="color:var(--orange);">Unavailable 10:00 PM – 06:00 AM</span></div>
+                </div>
+
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin:8px 0;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Header</span><span>Alternate Bank Account</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary</span><span>BitCipher LLP</span></div>
                   <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Bank Name</span><span><strong>Indian Bank</strong></span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">COINSW 1111 1111 47</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">COINSW 8147 1127 51</span></div>
                   <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">IFSC Code</span><span style="font-family:monospace;">IDIB000B198</span></div>
                   <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Type</span><span>Current</span></div>
                   <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Methods</span><span style="color:var(--green);">IMPS, NEFT & RTGS accepted</span></div>
                 </div>
 
-                <div style="background:var(--surface2);border:1px solid var(--red);border-radius:8px;padding:16px;margin:8px 0;opacity:0.7;">
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Tag</span><span style="color:var(--red);font-weight:600;">DEPRECATED</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Header</span><span>Secondary Bank Account</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary Name</span><span>BitCipher LLP</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Bank Name</span><span><strong>Equitas Small Finance Bank</strong></span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">2412 8911 1111 1147</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">IFSC Code</span><span style="font-family:monospace;">ESFB0000CMS</span></div>
-                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Type</span><span>Current</span></div>
-                  <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Methods</span><span style="color:var(--orange);">Only IMPS accepted</span></div>
-                </div>
+                Each field has a <strong>"Copy"</strong> button (green icon). Account number copies without spaces.<br><br>
 
-                Each field has a <strong>"Copy"</strong> button (blue icon). Account number copies without spaces.
+                <div style="display:flex;gap:8px;overflow-x:auto;">
+                  <img src="screenshots/bank-transfer-va-shivalik.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)">
+                  <img src="screenshots/bank-transfer-both-accounts.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)">
+                  <img src="screenshots/bank-transfer-va-indian-bank.png" class="screenshot-inline" style="max-height:280px;cursor:pointer;" onclick="openLightbox(this.src)">
+                </div>
               </div>
             </div>
           </div>
@@ -876,8 +927,12 @@ Home banner uses timeRemaining for "04 min: 26 sec" display</div>
           </div>
           <div class="card">
             <h4>ICICI (iMobile)</h4>
-            <p>1. Open iMobile app<br>2. Tap "Transact" → "Send Money"<br>3. Select "Other Bank"<br>4. Enter beneficiary details<br>5. Tap "Proceed"<br>6. Select payee → Transfer<br>7. Confirm with OTP</p>
+            <p>1. Open ICICI bank, select "Transact"<br>2. Tap "Send Money"<br>3. Select COINSWITCH payee<br>4. Enter ₹100, select NEFT/RTGS/IMPS<br>5. Tap "Proceed"<br>6. Confirm with OTP</p>
             <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">IFSC: ICIC</div>
+            <div style="margin-top:8px;display:flex;gap:4px;">
+              <img src="screenshots/add-payee-icici-step1.png" style="height:120px;border-radius:4px;cursor:pointer;" onclick="openLightbox(this.src)">
+              <img src="screenshots/add-payee-icici-transfer.png" style="height:120px;border-radius:4px;cursor:pointer;" onclick="openLightbox(this.src)">
+            </div>
           </div>
           <div class="card">
             <h4>Union Bank (Vyom)</h4>
@@ -1243,7 +1298,7 @@ If data is null → route to SUPPORT page</div>
     'home-strip': {
       title: 'Home — Wallet Strip',
       type: 'HOME',
-      desc: 'Balance card showing inr_free_balance + inr_blocked_balance with "Add" CTA button. Fee credits card alongside. Only rendered when isInvestedUser === true (getUserStatusV2().isAllStepsCompleted).',
+      desc: 'Balance card with "Buy BTC" + "Add Money" buttons. Ongoing Transactions banner below: "Upi Deposit - In Progress - 03:00 - ₹500 - Check Status →". Explore More section. Only rendered when isInvestedUser === true.<br><br><img src="screenshots/home-wallet-strip.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'Fetched via fetchOngoingTransactions() → GET /api/v1/custody-wallet-user/account-balances',
       nav: '"Add" → Deposit Form | Balance tap → Wallet Home',
       source: 'Transformer: home/green/index.js:782 (getWalletEntryBanner)\nWeb: app/components/home-page/mobile/home-wallet/index.tsx\nRN: App/src/Components/HomeHeader/'
@@ -1275,7 +1330,7 @@ If data is null → route to SUPPORT page</div>
     'deposit-form': {
       title: 'Deposit Form',
       type: 'ADD MONEY',
-      desc: 'Amount input with pill buttons (₹500, ₹1000, etc). Shows per-gateway availability icons. Validates amount against min/max from paymentConfig. Error: "You cannot deposit less than ₹X". Dynamic based on ADD_MONEY_LAYOUT query (version: v4).',
+      desc: 'Title: "Add Money". Orange Equitas deprecation alert at top. Current Balance shown (₹33.42). Amount input (₹500). Pill buttons: +500, +1,000, +5,000, +10,000. Limits: UPI Min ₹100 Max ₹1,00,000 | Bank Transfer Min ₹100 Max ₹5,00,000. "Deposit ₹500" green button.<br><br><img src="screenshots/deposit-form.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'GraphQL: ADD_MONEY_LAYOUT(depositAmount, routedFromDigio, version:"v4")\nTransformer calls: GET /api/v1/user/user_additional_data?symbol=inr',
       nav: 'Continue → Gateway Selection | Back → Wallet/Home',
       source: 'RN: App/src/Containers/Deposit/DepositForm.tsx\nTransformer: payments/index.js:300 (getAddMoneyLayout)'
@@ -1291,7 +1346,7 @@ If data is null → route to SUPPORT page</div>
     'upi-selection': {
       title: 'UPI Selection',
       type: 'UPI',
-      desc: 'List of saved UPI IDs or "Add new UPI ID" option. Consent bottom sheet for first-time. VPA verification via Surepass. Vendor auto-detected from @suffix (20+ app mappings). After selection: mutation GET_UPI_REDIRECTION_LINK → Linking.openURL(upiUrl).',
+      desc: 'Title: "UPI Payment". Amount ₹500, Pay only via account XXXX6497. Warning: "Funds transferred from any unverified UPI ID/Bank account will be refunded in 7-10 working days." Saved UPI IDs (autarchy.apurv@okicici - GPay). "+ Add UPI ID" option. "Pay ₹500" green button.<br><br><img src="screenshots/upi-selection.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'GET /api/v1/payment-service/upi/get-upi-ids\nPOST /api/v1/payment-service/upi/add-upi-id (verify)\nMutation: GET_UPI_REDIRECTION_LINK(amount, upiId, deviceOs) → TransactionLink',
       nav: 'Submit → UPI App (deeplink) → Loader | Back → Gateway',
       source: 'RN: App/src/Containers/UPI/index.tsx\nRN: App/src/CommonUtils/upiUtils.ts (openPaymentApp)\nTransformer: upi/dataSource.js:48 (getRedirectionLink)'
@@ -1323,7 +1378,7 @@ If data is null → route to SUPPORT page</div>
     'bank-transfer': {
       title: 'Bank Transfer',
       type: 'BANK',
-      desc: 'VA beneficiary details: Name, Account Number, IFSC, Bank Name with "Copy" buttons. "Add Payee" guide with per-bank instructions (SBIN, UTIB/Axis, ICIC, default — 7 steps each). Transfer type restrictions shown (Karnataka Bank: NEFT/RTGS/IMPS, Equitas: IMPS only).',
+      desc: 'Title: "Transfer Details". Two tabs: Payee Details | Add Payee. Instructions: "Add payee to account no. XXXXXX6497 on the ICICI Bank netbanking app". "Know how >" link.<br><br><strong>Primary:</strong> Shivalik Small Finance Bank (SMCB0000CMS) — Recommended, "Unavailable 10PM-6AM"<br><strong>Alternate:</strong> Indian Bank (IDIB000B198) — always available<br>Both: BitCipher LLP, Current account, IMPS+NEFT+RTGS<br><br><div style="display:flex;gap:8px;overflow-x:auto;"><img src="screenshots/bank-transfer-va-shivalik.png" class="screenshot-inline" style="max-height:240px;cursor:pointer;" onclick="openLightbox(this.src)"><img src="screenshots/bank-transfer-both-accounts.png" class="screenshot-inline" style="max-height:240px;cursor:pointer;" onclick="openLightbox(this.src)"><img src="screenshots/bank-transfer-va-indian-bank.png" class="screenshot-inline" style="max-height:240px;cursor:pointer;" onclick="openLightbox(this.src)"></div>',
       api: 'Mutation: DEPOSIT_MUTATION_V2 with gateway_name, gateway_account_type:"BANK_ACCOUNT"\nGET bank-urls via getBankUrls(ifsc_code.slice(0,4))',
       nav: 'User goes to their bank app manually → settlement auto-detected',
       source: 'RN: App/src/Containers/BankTransfer/index.tsx\nWeb: app/components/top-up/beneficiary-card/index.tsx\nWeb: app/config/add-payee.ts'
