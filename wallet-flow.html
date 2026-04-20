@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoinSwitch Wallet Flow — Add Money + Withdraw</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --green: #3fb950;
+    --green-bg: rgba(63,185,80,0.1);
+    --orange: #d29922;
+    --orange-bg: rgba(210,153,34,0.1);
+    --red: #f85149;
+    --red-bg: rgba(248,81,73,0.1);
+    --blue: #58a6ff;
+    --blue-bg: rgba(88,166,255,0.1);
+    --purple: #bc8cff;
+    --purple-bg: rgba(188,140,255,0.1);
+    --yellow: #e3b341;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 20px; font-weight: 600; }
+  .header p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+  .layout { display: flex; height: calc(100vh - 80px); }
+
+  /* Sidebar */
+  .sidebar { width: 260px; min-width: 260px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px 0; }
+  .sidebar-section { padding: 0 16px; margin-bottom: 20px; }
+  .sidebar-section h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; border-radius: 6px; margin: 2px 8px; font-size: 13px; transition: all 0.15s; }
+  .sidebar-item:hover { background: var(--surface2); }
+  .sidebar-item.active { background: var(--blue-bg); color: var(--blue); }
+  .sidebar-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--red); }
+  .dot-blue { background: var(--blue); }
+  .dot-purple { background: var(--purple); }
+
+  /* Main content */
+  .main { flex: 1; overflow-y: auto; padding: 32px; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); padding: 4px; border-radius: 8px; width: fit-content; }
+  .tab { padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-muted); transition: all 0.15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--surface2); color: var(--text); }
+
+  /* Content panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Flow diagram */
+  .flow-container { position: relative; padding: 20px 0; }
+  .flow-row { display: flex; align-items: center; margin-bottom: 8px; }
+  .flow-node { padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; position: relative; min-width: 200px; }
+  .flow-node:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .flow-node.selected { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(88,166,255,0.2); }
+
+  .node-home { background: var(--blue-bg); color: var(--blue); }
+  .node-deposit { background: var(--green-bg); color: var(--green); }
+  .node-upi { background: var(--purple-bg); color: var(--purple); }
+  .node-bank { background: var(--orange-bg); color: var(--orange); }
+  .node-withdraw { background: var(--red-bg); color: var(--red); }
+  .node-status { background: rgba(227,179,65,0.1); color: var(--yellow); }
+  .node-error { background: var(--red-bg); color: var(--red); }
+
+  .flow-arrow { color: var(--text-muted); margin: 0 12px; font-size: 18px; flex-shrink: 0; }
+  .flow-branch { border-left: 2px solid var(--border); margin-left: 40px; padding-left: 20px; }
+  .flow-branch-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Detail panel */
+  .detail-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 24px; }
+  .detail-panel h3 { font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .detail-panel .badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+  .badge-active { background: var(--green-bg); color: var(--green); }
+  .badge-deprecated { background: var(--red-bg); color: var(--red); }
+  .badge-screen { background: var(--blue-bg); color: var(--blue); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  th { color: var(--text-muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  tr:hover td { background: var(--surface2); }
+
+  /* Cards */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 16px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; transition: all 0.15s; }
+  .card:hover { border-color: var(--blue); }
+  .card h4 { font-size: 14px; margin-bottom: 8px; }
+  .card p { font-size: 12px; color: var(--text-muted); }
+  .card .card-tag { font-size: 10px; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-top: 8px; }
+
+  /* Status stepper */
+  .stepper { display: flex; flex-direction: column; gap: 0; margin: 16px 0; }
+  .step { display: flex; align-items: flex-start; gap: 12px; position: relative; }
+  .step-line { position: absolute; left: 7px; top: 20px; width: 2px; height: calc(100% - 4px); }
+  .step-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; z-index: 1; }
+  .step-content { padding-bottom: 20px; }
+  .step-title { font-size: 14px; font-weight: 500; }
+  .step-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Vendor panel */
+  .vendor-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 12px 0; }
+  .vendor-card h4 { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .vendor-vpas { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .vpa-chip { background: var(--surface); border: 1px solid var(--border); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-family: monospace; }
+
+  /* Code blocks */
+  .code-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin: 12px 0; font-family: 'SF Mono', monospace; font-size: 12px; overflow-x: auto; white-space: pre; }
+
+  /* Search */
+  .search-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-size: 13px; width: 100%; margin-bottom: 16px; outline: none; }
+  .search-box:focus { border-color: var(--blue); }
+
+  /* Collapsible */
+  .collapsible { cursor: pointer; user-select: none; }
+  .collapsible::before { content: '▸ '; color: var(--text-muted); }
+  .collapsible.open::before { content: '▾ '; }
+  .collapsible-content { display: none; padding-left: 16px; }
+  .collapsible-content.open { display: block; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 100%; max-height: 200px; }
+    .card-grid { grid-template-columns: 1fr; }
+  }
+
+  .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .subsection { margin: 24px 0; }
+  .subsection h4 { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .highlight { background: rgba(88,166,255,0.1); border-left: 3px solid var(--blue); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 13px; }
+  .highlight-warn { background: rgba(210,153,34,0.1); border-left-color: var(--orange); }
+  .highlight-danger { background: rgba(248,81,73,0.1); border-left-color: var(--red); }
+
+  .stat-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; min-width: 140px; }
+  .stat-value { font-size: 24px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CoinSwitch Wallet Flow — Prompt Pack</h1>
+  <p>Add Money + Withdraw + Balance + Transaction History | 14 Screens | 23 APIs | 2 Vendors</p>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <h3>Views</h3>
+      <div class="sidebar-item active" onclick="showTab('flowchart')">
+        <span class="dot dot-blue"></span> Flowchart
+      </div>
+      <div class="sidebar-item" onclick="showTab('screens')">
+        <span class="dot dot-green"></span> Screens (14)
+      </div>
+      <div class="sidebar-item" onclick="showTab('vendors')">
+        <span class="dot dot-orange"></span> Vendors
+      </div>
+      <div class="sidebar-item" onclick="showTab('state-machine')">
+        <span class="dot dot-purple"></span> State Machine
+      </div>
+      <div class="sidebar-item" onclick="showTab('apis')">
+        <span class="dot dot-green"></span> API Reference (23)
+      </div>
+      <div class="sidebar-item" onclick="showTab('utr')">
+        <span class="dot dot-red"></span> UTR Flow
+      </div>
+      <div class="sidebar-item" onclick="showTab('rules')">
+        <span class="dot dot-orange"></span> Business Rules
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Quick Jump</h3>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('home-strip')">Home Wallet Strip</div>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('deposit-form')">Deposit Form</div>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('upi-selection')">UPI Selection</div>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('bank-transfer')">Bank Transfer</div>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('utr-verify')">UTR Verification</div>
+      <div class="sidebar-item" onclick="showTab('screens'); highlightScreen('withdrawal')">Withdrawal</div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- FLOWCHART TAB -->
+    <div class="panel active" id="panel-flowchart">
+      <div class="section-title">Master Flow</div>
+
+      <div class="stat-row">
+        <div class="stat"><div class="stat-value" style="color:var(--blue)">14</div><div class="stat-label">Screens</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--green)">23</div><div class="stat-label">API Endpoints</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--orange)">2</div><div class="stat-label">Payment Vendors</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--purple)">9</div><div class="stat-label">Status States</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--red)">15+</div><div class="stat-label">Entry Points</div></div>
+      </div>
+
+      <div class="flow-container">
+        <!-- HOME SECTION -->
+        <div style="margin-bottom: 32px;">
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Home Page</div>
+          <div class="flow-row">
+            <div class="flow-node node-home" onclick="showScreenDetail('home-strip')">Wallet Strip<br><small style="opacity:0.7">Balance + "Add" CTA</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-deposit" onclick="showScreenDetail('deposit-form')">Deposit Form<br><small style="opacity:0.7">Amount + Gateway limits</small></div>
+          </div>
+          <div class="flow-row">
+            <div class="flow-node node-status" onclick="showScreenDetail('ongoing-txn')">Ongoing Txn Banner<br><small style="opacity:0.7">"In Progress - 04:26 - ₹1,500"</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-upi" onclick="showScreenDetail('deposit-status')">Deposit Status<br><small style="opacity:0.7">3-step stepper</small></div>
+          </div>
+          <div class="flow-row">
+            <div class="flow-node node-error" onclick="showScreenDetail('trouble-banner')">Trouble Banner<br><small style="opacity:0.7">"₹1,500 is facing trouble"</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-error" onclick="showScreenDetail('utr-verify')">UTR Verification<br><small style="opacity:0.7">12-digit UTR input</small></div>
+          </div>
+        </div>
+
+        <!-- ADD MONEY SECTION -->
+        <div style="margin-bottom: 32px;">
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Add Money Flow</div>
+          <div class="flow-row">
+            <div class="flow-node node-deposit" onclick="showScreenDetail('deposit-form')">Deposit Form</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-deposit" onclick="showScreenDetail('gateway')">Gateway Selection<br><small style="opacity:0.7">UPI / Bank Transfer</small></div>
+          </div>
+
+          <div class="flow-branch">
+            <div class="flow-branch-label">UPI Path</div>
+            <div class="flow-row">
+              <div class="flow-node node-upi" onclick="showScreenDetail('upi-selection')">UPI Selection<br><small style="opacity:0.7">Pick VPA + consent</small></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node node-upi" style="background:rgba(188,140,255,0.05);border:1px dashed var(--purple);">UPI App<br><small style="opacity:0.7">[External deeplink]</small></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node node-upi" onclick="showScreenDetail('upi-loader')">Loader<br><small style="opacity:0.7">5 min countdown</small></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node node-status" onclick="showScreenDetail('deposit-status')">Status</div>
+            </div>
+
+            <div class="flow-branch" style="margin-left:0;">
+              <div class="flow-branch-label" style="color:var(--red);">If Trouble</div>
+              <div class="flow-row">
+                <div class="flow-node node-error" onclick="showScreenDetail('utr-verify')">UTR Verify</div>
+                <span class="flow-arrow">→</span>
+                <div class="flow-node node-deposit" style="font-size:12px;">Auto-credit / Refund / Support</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flow-branch">
+            <div class="flow-branch-label">Bank Transfer Path</div>
+            <div class="flow-row">
+              <div class="flow-node node-bank" onclick="showScreenDetail('bank-transfer')">VA Details<br><small style="opacity:0.7">Beneficiary + IFSC</small></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node node-bank" style="background:rgba(210,153,34,0.05);border:1px dashed var(--orange);">User's Bank App<br><small style="opacity:0.7">[Manual NEFT/RTGS/IMPS]</small></div>
+              <span class="flow-arrow">→</span>
+              <div class="flow-node node-deposit">Settlement<br><small style="opacity:0.7">Auto-detected</small></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WITHDRAW SECTION -->
+        <div style="margin-bottom: 32px;">
+          <div style="font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Withdraw Flow</div>
+          <div class="flow-row">
+            <div class="flow-node node-home" onclick="showScreenDetail('wallet-home')">Wallet Home</div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-withdraw" onclick="showScreenDetail('withdrawal')">Withdraw Form<br><small style="opacity:0.7">Amount + bank</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-withdraw" onclick="showScreenDetail('withdraw-security')">PIN Gate<br><small style="opacity:0.7">4-digit PIN</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-withdraw" onclick="showScreenDetail('withdraw-security')">OTP Gate<br><small style="opacity:0.7">6-digit email OTP</small></div>
+            <span class="flow-arrow">→</span>
+            <div class="flow-node node-deposit">Success</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entry Points -->
+      <div class="subsection">
+        <h4>All Entry Points to Add Money</h4>
+        <div class="card-grid">
+          <div class="card"><h4>Home Wallet Strip</h4><p>"Add" button on balance card (invested users only)</p><div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">PRIMARY</div></div>
+          <div class="card"><h4>Wallet Tab → TopUp</h4><p>Dedicated top-up tab in wallet screen</p><div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">PRIMARY</div></div>
+          <div class="card"><h4>Trade Widget</h4><p>Low balance error → "Add funds" CTA</p><div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">CONTEXTUAL</div></div>
+          <div class="card"><h4>Futures Quick Buy</h4><p>Insufficient funds during quick buy</p><div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">CONTEXTUAL</div></div>
+          <div class="card"><h4>Options Order Pad</h4><p>Low balance error in options trading</p><div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">CONTEXTUAL</div></div>
+          <div class="card"><h4>KYC Completion</h4><p>Auto-redirect to wallet after KYC verified</p><div class="card-tag" style="background:var(--green-bg);color:var(--green)">REDIRECT</div></div>
+          <div class="card"><h4>Bank Verified</h4><p>Redirect after bank account linked</p><div class="card-tag" style="background:var(--green-bg);color:var(--green)">REDIRECT</div></div>
+          <div class="card"><h4>Algo Trading</h4><p>Deposit popup for algo trading</p><div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">CONTEXTUAL</div></div>
+          <div class="card"><h4>Referral Section</h4><p>Claim referral earnings</p><div class="card-tag" style="background:var(--green-bg);color:var(--green)">REDIRECT</div></div>
+          <div class="card"><h4>Ongoing Txn Banner</h4><p>"Check Status" on home page</p><div class="card-tag" style="background:var(--purple-bg);color:var(--purple)">STATUS</div></div>
+          <div class="card"><h4>Trouble Banner</h4><p>"Verify Payment" on home page</p><div class="card-tag" style="background:var(--red-bg);color:var(--red)">RECOVERY</div></div>
+        </div>
+      </div>
+
+      <div id="screen-detail"></div>
+    </div>
+
+    <!-- SCREENS TAB -->
+    <div class="panel" id="panel-screens">
+      <div class="section-title">Screen Inventory (14 Screens)</div>
+      <input class="search-box" placeholder="Search screens..." oninput="filterScreens(this.value)">
+
+      <div class="card-grid" id="screen-cards">
+        <div class="card" data-screen="home-strip" onclick="showScreenDetail('home-strip')">
+          <h4>1. Home — Wallet Strip</h4>
+          <p>Balance card (free + locked) with "Add" CTA button. Fee credits card alongside. Only shown for invested users (isAllStepsCompleted).</p>
+          <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">HOME</div>
+        </div>
+        <div class="card" data-screen="ongoing-txn" onclick="showScreenDetail('ongoing-txn')">
+          <h4>2. Home — Ongoing Txn Banner</h4>
+          <p>"Upi Deposit - In Progress - 04 min 26 sec - ₹1,500 - Check Status →". Timer from ETA calculation. Refresh CTA when IN_PROGRESS.</p>
+          <div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">HOME</div>
+        </div>
+        <div class="card" data-screen="trouble-banner" onclick="showScreenDetail('trouble-banner')">
+          <h4>3. Home — Trouble Banner</h4>
+          <p>"Payment of ₹1,500 is facing trouble" with warning triangle. "Verify Payment >" CTA routes to UTR verification.</p>
+          <div class="card-tag" style="background:var(--red-bg);color:var(--red)">HOME</div>
+        </div>
+        <div class="card" data-screen="wallet-home" onclick="showScreenDetail('wallet-home')">
+          <h4>4. Wallet Home</h4>
+          <p>Balance (inr_free_balance + inr_blocked_balance), tabs: Wallet, TopUp, Withdraw, Fees, Rewards. Transaction history with pagination.</p>
+          <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">WALLET</div>
+        </div>
+        <div class="card" data-screen="deposit-form" onclick="showScreenDetail('deposit-form')">
+          <h4>5. Deposit Form</h4>
+          <p>Amount input with pill buttons (₹500, ₹1000, etc). Per-gateway min/max limits. Error: "You cannot deposit less than ₹X". Gateway availability icons.</p>
+          <div class="card-tag" style="background:var(--green-bg);color:var(--green)">ADD MONEY</div>
+        </div>
+        <div class="card" data-screen="gateway" onclick="showScreenDetail('gateway')">
+          <h4>6. Gateway Selection</h4>
+          <p>Payment method cards: UPI (if available + not 12AM-3AM), Bank Transfer. Per-card min/max, availability status, partner info.</p>
+          <div class="card-tag" style="background:var(--green-bg);color:var(--green)">ADD MONEY</div>
+        </div>
+        <div class="card" data-screen="upi-selection" onclick="showScreenDetail('upi-selection')">
+          <h4>7. UPI Selection</h4>
+          <p>Pick saved UPI ID or verify new VPA. Consent bottom sheet. Surepass VPA validation. Vendor detection from @suffix.</p>
+          <div class="card-tag" style="background:var(--purple-bg);color:var(--purple)">UPI</div>
+        </div>
+        <div class="card" data-screen="upi-loader" onclick="showScreenDetail('upi-loader')">
+          <h4>8. UPI Deposit Loader</h4>
+          <p>Circular countdown timer (~5 min). 3-step stepper: Payment Initiated → Verification in Progress → Deposit Completed. "Go to Home" button.</p>
+          <div class="card-tag" style="background:var(--purple-bg);color:var(--purple)">UPI</div>
+        </div>
+        <div class="card" data-screen="deposit-status" onclick="showScreenDetail('deposit-status')">
+          <h4>9. UPI Deposit Status</h4>
+          <p>Final status with stepper. "Verification Pending - ETA: 2 mins - can take upto 40 hours". Details: Amount, Date, UPI ID, Reference ID. "Help" link.</p>
+          <div class="card-tag" style="background:var(--purple-bg);color:var(--purple)">UPI</div>
+        </div>
+        <div class="card" data-screen="utr-verify" onclick="showScreenDetail('utr-verify')">
+          <h4>10. UTR Verification</h4>
+          <p>"Enter UTR Number" input. "How to get UTR? Know More" link. Per-app education with phone mockups (GPay, PhonePe, Paytm, Amazon). 12-digit number.</p>
+          <div class="card-tag" style="background:var(--red-bg);color:var(--red)">RECOVERY</div>
+        </div>
+        <div class="card" data-screen="bank-transfer" onclick="showScreenDetail('bank-transfer')">
+          <h4>11. Bank Transfer</h4>
+          <p>VA beneficiary details (name, account number, IFSC, bank). "Add Payee" guide per bank (SBIN, Axis, ICICI). "Copy" buttons. Transfer type restrictions.</p>
+          <div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">BANK</div>
+        </div>
+        <div class="card" data-screen="help-support" onclick="showScreenDetail('help-support')">
+          <h4>12. Help & Support</h4>
+          <p>Bank deprecation alert: "Equitas Bank will no longer be supported. Add Shivalik Bank or Indian Bank". 24x7 support. Categories: Crypto.</p>
+          <div class="card-tag" style="background:var(--orange-bg);color:var(--orange)">SUPPORT</div>
+        </div>
+        <div class="card" data-screen="withdrawal" onclick="showScreenDetail('withdrawal')">
+          <h4>13. Withdrawal Form</h4>
+          <p>Amount input (min ₹100). Bank account selection. Compliance gates: TOS → PMLA → ReKYC. Fee display.</p>
+          <div class="card-tag" style="background:var(--red-bg);color:var(--red)">WITHDRAW</div>
+        </div>
+        <div class="card" data-screen="withdraw-security" onclick="showScreenDetail('withdraw-security')">
+          <h4>14. Withdrawal Security</h4>
+          <p>Step 1: 4-digit PIN (N attempts, lockout → reset). Step 2: 6-digit email OTP (60s resend timer). Dual-gate 2FA.</p>
+          <div class="card-tag" style="background:var(--red-bg);color:var(--red)">WITHDRAW</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENDORS TAB -->
+    <div class="panel" id="panel-vendors">
+      <div class="section-title">Payment Vendors</div>
+
+      <div class="subsection">
+        <h4>Bank / VA Providers</h4>
+
+        <div class="vendor-card">
+          <h4>Karnataka Bank <span class="badge badge-active">ACTIVE — PRIMARY</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Payment acquirer — UPI + Bank Transfer (Virtual Account)</td></tr>
+            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>NEFT, RTGS, IMPS</strong> (all supported)</td></tr>
+            <tr><td style="color:var(--text-muted)">UPI VPAs (6)</td><td>
+              <div class="vendor-vpas">
+                <span class="vpa-chip">csvda@kbl</span>
+                <span class="vpa-chip">depositcs@kbl</span>
+                <span class="vpa-chip">cspayin@kbl</span>
+                <span class="vpa-chip">bldeposit@kbl</span>
+                <span class="vpa-chip">bldeposit5@kbl</span>
+                <span class="vpa-chip">bldeposit6@kbl</span>
+              </div>
+            </td></tr>
+            <tr><td style="color:var(--text-muted)">VA Beneficiary</td><td>CoinSwitch account at Karnataka Bank — user adds as payee in their bank app</td></tr>
+            <tr><td style="color:var(--text-muted)">Notes</td><td>Primary vendor handling 6 of 7 payment VPAs. Supports all transfer types.</td></tr>
+          </table>
+        </div>
+
+        <div class="vendor-card" style="border-color:var(--red);">
+          <h4>Equitas Bank <span class="badge badge-deprecated">DEPRECATED</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Payment acquirer — UPI + Bank Transfer (Virtual Account)</td></tr>
+            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>IMPS only</strong> (no NEFT/RTGS)</td></tr>
+            <tr><td style="color:var(--text-muted)">UPI VPAs (1)</td><td>
+              <div class="vendor-vpas">
+                <span class="vpa-chip" style="border-color:var(--red);">yap165725@equitas</span>
+              </div>
+            </td></tr>
+            <tr><td style="color:var(--text-muted)">Deprecation</td><td style="color:var(--red);">"Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience."</td></tr>
+            <tr><td style="color:var(--text-muted)">Impact</td><td>Users must switch beneficiary to Karnataka Bank VA. IMPS-only limitation was a pain point.</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Verification Vendor</h4>
+        <div class="vendor-card">
+          <h4>Surepass <span class="badge badge-active">ACTIVE</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>UPI ID verification via reverse penny drop</td></tr>
+            <tr><td style="color:var(--text-muted)">Feature Flag</td><td><code>isSurepassActive</code> — toggles VPA validation method</td></tr>
+            <tr><td style="color:var(--text-muted)">API</td><td><code>/api/v1/payment-service/upi/add-upi-id</code> with vendor param</td></tr>
+            <tr><td style="color:var(--text-muted)">Statuses</td><td>SUCCESS, PENDING, VERIFICATION_REQUIRED, FAILED</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>UPI App Detection (VPA Suffix → App Name)</h4>
+        <div class="highlight">
+          Used for: (1) showing correct app icon in UI, (2) UTR education — "how to find UTR in [app]", (3) intent routing on mobile
+        </div>
+        <table>
+          <thead><tr><th>App</th><th>VPA Suffixes</th><th>UTR Location in App</th></tr></thead>
+          <tbody>
+            <tr><td>Google Pay</td><td><code>@okaxis @okhdfcbank @okicici @oksbi</code></td><td>Transaction History → tap → "UPI Reference Number"</td></tr>
+            <tr><td>PhonePe</td><td><code>@ybl @ibl @axl</code></td><td>Transaction Details → UTR field (red highlight)</td></tr>
+            <tr><td>Paytm</td><td><code>@paytm @ptsbi @pthdfc @ptaxis @ptyes</code></td><td>Passbook → tap transaction → UTR</td></tr>
+            <tr><td>Amazon Pay</td><td><code>@apl @yapl @rapl</code></td><td>Activity → Transaction Details</td></tr>
+            <tr><td>WhatsApp</td><td><code>@waicici @waaxis @wahdfcbank @wasbi</code></td><td>Payments → Transaction</td></tr>
+            <tr><td>BHIM</td><td><code>@upi</code></td><td>Transaction Details</td></tr>
+            <tr><td>CRED</td><td><code>@axisb</code></td><td>Transaction History</td></tr>
+            <tr><td>Groww</td><td><code>@axisbank</code></td><td>Transaction History</td></tr>
+            <tr><td>Slice</td><td><code>@sliceaxis</code></td><td>Transaction History</td></tr>
+            <tr><td>Jupiter Money</td><td><code>@jupiteraxis</code></td><td>Transaction History</td></tr>
+            <tr><td>Samsung Pay</td><td><code>@pingpay</code></td><td>Transaction History</td></tr>
+            <tr><td>Mobikwik</td><td><code>@ikwik</code></td><td>Transaction History</td></tr>
+            <tr><td>Bajaj Finserv</td><td><code>@abfspay</code></td><td>Transaction History</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STATE MACHINE TAB -->
+    <div class="panel" id="panel-state-machine">
+      <div class="section-title">State Machine</div>
+
+      <div class="subsection">
+        <h4>Deposit States</h4>
+        <div class="stepper">
+          <div class="step">
+            <div class="step-dot" style="background:var(--text-muted);"></div>
+            <div class="step-line" style="background:var(--text-muted);"></div>
+            <div class="step-content"><div class="step-title">NOT_STARTED</div><div class="step-desc">Initial state. No action taken.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">INITIATED</div><div class="step-desc">Deposit request created. UPI deeplink sent or VA details shown.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">IN_PROGRESS</div><div class="step-desc">Payment sent. Countdown timer running (~5 min). Refresh CTA shown. Home banner: "Upi Deposit - In Progress"</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">PENDING</div><div class="step-desc">"Verification Pending — can take upto 40 hours". ETA badge shown. No refresh CTA.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">DELAYED</div><div class="step-desc">Past ETA. Delayed icon shown. May transition to trouble banner on home.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content"><div class="step-title" style="color:var(--green);">COMPLETED</div><div class="step-desc">Terminal state. Money credited to wallet. Green icon.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--red);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content"><div class="step-title" style="color:var(--red);">FAILED</div><div class="step-desc">Terminal state. Payment failed. "Verify Payment" CTA → UTR flow. Red icon. Contact Support.</div></div>
+          </div>
+        </div>
+
+        <div class="highlight-warn">
+          <strong>Recovery from FAILED:</strong> User enters UTR → fetchUTRStatus API → 3 outcomes:<br>
+          • <code>should_process_deposit</code> → auto-credit to wallet<br>
+          • <code>should_process_refund</code> → refund to bank (user provides account + IFSC)<br>
+          • <code>cta_use_case: "contact_support"</code> → route to Help & Support
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Withdrawal States</h4>
+        <div class="stepper">
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">INITIATED</div><div class="step-desc">Withdrawal request created after PIN + OTP verification.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">PROCESSING</div><div class="step-desc">Bank processing the withdrawal.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">DELAYED</div><div class="step-desc">"Withdrawal Delayed" — past expected settlement time.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content"><div class="step-title" style="color:var(--green);">COMPLETED</div><div class="step-desc">Money received in user's bank account.</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--red);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content"><div class="step-title" style="color:var(--red);">FAILED</div><div class="step-desc">Withdrawal failed. May trigger refund: REFUND_INITIATED → REFUND_COMPLETED / REFUND_FAILED</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Status → UI Mapping</h4>
+        <table>
+          <thead><tr><th>Status</th><th>Icon</th><th>Color</th><th>Home Banner</th><th>Refresh CTA</th></tr></thead>
+          <tbody>
+            <tr><td>NOT_STARTED</td><td>—</td><td style="color:var(--text-muted);">Grey</td><td>Hidden</td><td>No</td></tr>
+            <tr><td>INITIATED</td><td>pending.png</td><td style="color:var(--orange);">Orange</td><td>Shown</td><td>No</td></tr>
+            <tr><td style="color:var(--orange);font-weight:600;">IN_PROGRESS</td><td>pending.png</td><td style="color:var(--orange);">Orange</td><td>"In Progress" + timer</td><td><strong>Yes</strong></td></tr>
+            <tr><td>PENDING</td><td>pending.png</td><td style="color:var(--orange);">Orange</td><td>Shown</td><td>No</td></tr>
+            <tr><td>DELAYED</td><td>delayed.png</td><td style="color:var(--orange);">Orange</td><td>Shown</td><td>No</td></tr>
+            <tr><td style="color:var(--green);font-weight:600;">COMPLETED</td><td>complete.png</td><td style="color:var(--green);">Green</td><td>Hidden</td><td>No</td></tr>
+            <tr><td style="color:var(--red);font-weight:600;">FAILED</td><td>error.png</td><td style="color:var(--red);">Red</td><td>"Facing trouble"</td><td>No</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>ETA Calculation</h4>
+        <div class="code-block">getUpdatedETA({ completedAt, createdAt, etaInMins, isTerminalState })
+
+If terminal (COMPLETED/FAILED):
+  → Show completion timestamp
+
+If non-terminal:
+  → eta = createdAt + etaInMins (as formatted datetime)
+  → timeRemaining = eta - now (in seconds, for countdown)
+  → completionTimestamp = eta datetime string
+
+Home banner uses timeRemaining for "04 min: 26 sec" display</div>
+      </div>
+    </div>
+
+    <!-- API REFERENCE TAB -->
+    <div class="panel" id="panel-apis">
+      <div class="section-title">API Reference (23 Endpoints)</div>
+      <input class="search-box" placeholder="Search APIs..." oninput="filterAPIs(this.value)">
+
+      <div class="subsection">
+        <h4>Add Money APIs</h4>
+        <table class="api-table">
+          <thead><tr><th>#</th><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>/api/v1/user/user_additional_data?symbol=inr</code></td><td>GET</td><td>Deposit config — per-gateway limits, partner availability, UPI time range</td></tr>
+            <tr><td>2</td><td><code>/api/v1/custody-wallet-user/deposit</code></td><td>POST</td><td>Initiate deposit — params: currency, amount, gateway_name, gateway_account_type, generate_account</td></tr>
+            <tr><td>3</td><td><code>/api/v1/custody-wallet-user/deposit</code> (V2)</td><td>POST</td><td>Multi-VA deposit — feature flag: multipleVA</td></tr>
+            <tr><td>4</td><td><code>/api/v1/payment-service/upi/deposit-init</code></td><td>POST</td><td>UPI intent deposit — params: amount, payment_mode:"UPI", currency:"inr", upi_id, device_os</td></tr>
+            <tr><td>5</td><td><code>/api/v1/payment-service/upi/get-upi-ids</code></td><td>GET</td><td>List saved UPI IDs — param: isSurepassActive</td></tr>
+            <tr><td>6</td><td><code>/api/v1/payment-service/upi/add-upi-id</code></td><td>POST</td><td>Verify new UPI ID — params: upi_id, vendor (from suffix detection)</td></tr>
+            <tr><td>7</td><td><code>/api/v1/payment-service/upi/redirect-url</code></td><td>POST</td><td>Reverse penny drop link — param: vendor</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Deposit Status APIs</h4>
+        <table class="api-table">
+          <thead><tr><th>#</th><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>8</td><td><code>/api/v1/payment-service/transaction-details/fetch-ongoing</code></td><td>POST</td><td>Ongoing txns for home banner — returns recent_transaction + ongoing_transactions count</td></tr>
+            <tr><td>9</td><td><code>/api/v1/payment-service/deposit-details/fetch-ongoing</code></td><td>POST</td><td>Ongoing deposits specifically</td></tr>
+            <tr><td>10</td><td><code>/api/v1/payment-service/deposit-details/fetch</code></td><td>POST</td><td>Deposit status details — param: deposit_id → returns status_map (3-step stepper)</td></tr>
+            <tr><td>11</td><td><code>/api/v1/payment-service/deposit-details/fetch-from-utr</code></td><td>POST</td><td>UTR lookup — params: deposit_id, user_entered_utr → should_process_refund/deposit</td></tr>
+            <tr><td>12</td><td><code>/api/v1/payment-service/deposit-details/sync-refund-for-utr</code></td><td>POST</td><td>Initiate refund — params: user_bank_account_number, user_ifsc_code, user_entered_utr</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Withdrawal APIs</h4>
+        <table class="api-table">
+          <thead><tr><th>#</th><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>13</td><td><code>/api/v1/custody-wallet-user/withdraw</code></td><td>POST</td><td>Initiate withdrawal — params: currency:"inr", bank_account_uuid, amount (min ₹100)</td></tr>
+            <tr><td>14</td><td><code>/api/v1/secure-action/init</code></td><td>POST</td><td>Start 2FA — params: use_case:"WITHDRAWAL", withdrawal_uuid</td></tr>
+            <tr><td>15</td><td><code>/api/v1/secure-action/verify</code></td><td>POST</td><td>Verify PIN or OTP — params: secure_action_id, verification_entity:"PIN"/"EMAIL", code</td></tr>
+            <tr><td>16</td><td><code>/api/v1/secure-action/re-init</code></td><td>POST</td><td>Resend OTP — params: secure_action_id, channel_uuid</td></tr>
+            <tr><td>17</td><td><code>/api/v1/reset-pin/init</code></td><td>POST</td><td>Reset PIN after lockout</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Wallet APIs</h4>
+        <table class="api-table">
+          <thead><tr><th>#</th><th>Endpoint</th><th>Method</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>18</td><td><code>/api/v1/custody-wallet-user/account-balances</code></td><td>GET</td><td>Wallet balance — inr_free_balance + inr_blocked_balance</td></tr>
+            <tr><td>19</td><td><code>/api/v1/custody-wallet-user/bank-account</code></td><td>GET</td><td>Linked bank account details</td></tr>
+            <tr><td>20</td><td><code>wallet-transactions_v2?limit=N&deposit_cursor=X&withdrawal_cursor=Y</code></td><td>GET</td><td>Transaction history — paginated, deposits + withdrawals</td></tr>
+            <tr><td>21</td><td><code>/api/v1/cspro/get-wallet-config</code></td><td>GET</td><td>Min/max deposit/withdrawal limits</td></tr>
+            <tr><td>22</td><td><code>/api/v1/cspro/get-fee-discounting-data</code></td><td>GET</td><td>Fee discounting tier — final_fee, fee_discount</td></tr>
+            <tr><td>23</td><td><code>/api/v1/cspro/get-user-volume-data</code></td><td>GET</td><td>User trading volume level for fee calculation</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- UTR FLOW TAB -->
+    <div class="panel" id="panel-utr">
+      <div class="section-title">UTR Verification Flow</div>
+
+      <div class="highlight">
+        <strong>UTR (Unique Transaction Reference)</strong> is a 12-digit number generated by the bank for every UPI transaction. Users need it when money is debited from their bank but not credited to the CoinSwitch wallet.
+      </div>
+
+      <div class="subsection">
+        <h4>When UTR Flow Triggers</h4>
+        <div class="stepper">
+          <div class="step">
+            <div class="step-dot" style="background:var(--red);"></div>
+            <div class="step-line" style="background:var(--red);"></div>
+            <div class="step-content"><div class="step-title">Payment Trouble Detected</div><div class="step-desc">Home banner: "Payment of ₹1,500 is facing trouble" OR deposit status shows FAILED/DELAYED</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content"><div class="step-title">User taps "Verify Payment"</div><div class="step-desc">Routes to Payment Details screen with "Verify UTR" section</div></div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content">
+              <div class="step-title">Enter 12-digit UTR Number</div>
+              <div class="step-desc">Input field + green submit arrow. "How to get UTR? Know More" link for education.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--blue);"></div>
+            <div class="step-line" style="background:var(--blue);"></div>
+            <div class="step-content">
+              <div class="step-title">API: fetchUTRStatus</div>
+              <div class="step-desc">POST /api/v1/payment-service/deposit-details/fetch-from-utr with deposit_id + user_entered_utr</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content">
+              <div class="step-title">3 Possible Outcomes</div>
+              <div class="step-desc">
+                <div style="margin-top:8px;">
+                  <div style="color:var(--green);margin-bottom:4px;"><strong>should_process_deposit = true</strong> → Auto-credit to wallet</div>
+                  <div style="color:var(--orange);margin-bottom:4px;"><strong>should_process_refund = true</strong> → Refund flow (user provides bank account + IFSC)</div>
+                  <div style="color:var(--red);"><strong>cta_use_case = "contact_support"</strong> → Route to Help & Support</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Per-App UTR Education</h4>
+        <div class="highlight">
+          The app shows a swipeable phone mockup carousel teaching users how to find UTR in their UPI app. Bottom tabs: GPay | PhonePe | Paytm | Amazon Pay
+        </div>
+        <div class="card-grid">
+          <div class="card">
+            <h4>Google Pay</h4>
+            <p>1. Open Google Pay<br>2. Scroll to "See Transaction History"<br>3. Tap the transaction<br>4. Find "UPI Reference Number" (12 digits)</p>
+          </div>
+          <div class="card">
+            <h4>PhonePe</h4>
+            <p>1. Open PhonePe<br>2. Go to Transaction History<br>3. Tap the ₹100 payment to BITCIPHER LABS LLP<br>4. UTR is highlighted with red "UTR" badge</p>
+          </div>
+          <div class="card">
+            <h4>Paytm</h4>
+            <p>1. Open Paytm<br>2. Go to Passbook<br>3. Tap the transaction<br>4. Find UTR number in details</p>
+          </div>
+          <div class="card">
+            <h4>Amazon Pay</h4>
+            <p>1. Open Amazon Pay<br>2. Go to Activity<br>3. Tap Transaction Details<br>4. Find UTR reference number</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Refund Sub-flow</h4>
+        <div class="code-block">API: POST /api/v1/payment-service/deposit-details/sync-refund-for-utr
+
+Request:
+{
+  user_bank_account_number: string,
+  user_ifsc_code: string,
+  user_entered_utr: string (12 digits)
+}
+
+Response:
+{
+  is_initiated: boolean,
+  transaction_text: string  // "Refund initiated" or error message
+}
+
+If is_initiated = false → route to SUPPORT page
+If data is null → route to SUPPORT page</div>
+      </div>
+    </div>
+
+    <!-- BUSINESS RULES TAB -->
+    <div class="panel" id="panel-rules">
+      <div class="section-title">Business Rules & Edge Cases</div>
+
+      <div class="subsection">
+        <h4>Time Restrictions</h4>
+        <table>
+          <thead><tr><th>Rule</th><th>Time</th><th>Behavior</th></tr></thead>
+          <tbody>
+            <tr><td><strong>UPI disabled</strong></td><td>12:00 AM – 3:00 AM</td><td>UPI card hidden or shows "UPI is unavailable till 3 AM". Bank Transfer card promoted to top.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Amount Limits</h4>
+        <table>
+          <thead><tr><th>Channel</th><th>Min</th><th>Max</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>UPI</td><td>Dynamic (from config)</td><td>Dynamic (from config)</td><td><code>v1_deposit_metadata.UPI.partners[].min/max</code></td></tr>
+            <tr><td>Bank Transfer</td><td>Dynamic</td><td>Dynamic</td><td><code>v1_deposit_metadata.BANK_ACCOUNT.partners[].min/max</code></td></tr>
+            <tr><td>Withdrawal</td><td><strong>₹100</strong> (hardcoded)</td><td>Dynamic</td><td>Hardcoded in transformer + <code>get-wallet-config</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Compliance Gates</h4>
+        <table>
+          <thead><tr><th>Gate</th><th>Check</th><th>Blocks</th><th>UI</th></tr></thead>
+          <tbody>
+            <tr><td><strong>KYC</strong></td><td><code>is_kyc_complete</code></td><td>All financial ops</td><td>Redirect to KYC flow</td></tr>
+            <tr><td><strong>TOS</strong></td><td><code>getUserTosStatusPostLogin()</code></td><td>Deposit + Withdraw</td><td>Consent modal</td></tr>
+            <tr><td><strong>PMLA</strong></td><td><code>is_pmla_done</code></td><td>Deposit + Withdraw</td><td>PMLA form</td></tr>
+            <tr><td><strong>ReKYC</strong></td><td><code>is_rekyc_enabled</code></td><td>Withdraw (soft block)</td><td>Nudge popup</td></tr>
+            <tr><td><strong>Bank Verify</strong></td><td>Surepass penny drop</td><td>Withdraw</td><td>Bank verification bottom sheet</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Vendor Rules</h4>
+        <div class="highlight-danger">
+          <strong>Equitas Bank Deprecated:</strong> Banner shown on Help & Support. Users directed to add "Shivalik Bank" or "Indian Bank" as beneficiary. Only IMPS supported (no NEFT/RTGS). 1 of 7 UPI VPAs.
+        </div>
+        <div class="highlight">
+          <strong>Karnataka Bank Primary:</strong> 6 of 7 UPI VPAs. Supports NEFT + RTGS + IMPS for bank transfers. Primary VA provider.
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h4>Security Rules</h4>
+        <table>
+          <thead><tr><th>Rule</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Withdrawal PIN</strong></td><td>4 digits. <code>remaining_validation_count</code> decrements per wrong attempt. Lockout → PIN reset flow.</td></tr>
+            <tr><td><strong>Email OTP</strong></td><td>6 digits. 60-second resend timer (decimal: 0.6 → 0.0). Sent to user's registered email.</td></tr>
+            <tr><td><strong>Dual-gate</strong></td><td>Both PIN AND OTP required. Cannot skip either.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h4>Edge Cases</h4>
+        <table>
+          <thead><tr><th>Scenario</th><th>Behavior</th></tr></thead>
+          <tbody>
+            <tr><td>UPI app killed during payment</td><td>AppState listener detects resume → navigate to UPIDEPOSITSTATUS with callback data</td></tr>
+            <tr><td>Payment timeout (5 min)</td><td>Loader transitions to status screen. Stepper shows "Verification Pending".</td></tr>
+            <tr><td>Verification pending >40 hours</td><td>Status shows "Verification can take upto 40 hours". Trouble banner on home.</td></tr>
+            <tr><td>UTR not found in system</td><td><code>cta_use_case: "contact_support"</code> → route to Help & Support</td></tr>
+            <tr><td>Refund initiation fails</td><td><code>is_initiated: false</code> → show error + Contact Support</td></tr>
+            <tr><td>Bank transfer VA unavailable</td><td>Gateway card shows "Unavailable" tag. Sub-header: "Only IMPS transfer accepted".</td></tr>
+            <tr><td>Multiple VAs per user</td><td>Sorted by priority (primary=1, secondary=2). V2 API with multipleVA flag.</td></tr>
+            <tr><td>Non-invested user on home</td><td>Wallet strip hidden. Add Money only via direct wallet tab navigation.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Tab switching
+  function showTab(tabName) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+    document.getElementById('panel-' + tabName).classList.add('active');
+    event.target.closest('.sidebar-item')?.classList.add('active');
+  }
+
+  // Screen detail popup
+  const screenDetails = {
+    'home-strip': {
+      title: 'Home — Wallet Strip',
+      type: 'HOME',
+      desc: 'Balance card showing inr_free_balance + inr_blocked_balance with "Add" CTA button. Fee credits card alongside. Only rendered when isInvestedUser === true (getUserStatusV2().isAllStepsCompleted).',
+      api: 'Fetched via fetchOngoingTransactions() → GET /api/v1/custody-wallet-user/account-balances',
+      nav: '"Add" → Deposit Form | Balance tap → Wallet Home',
+      source: 'Transformer: home/green/index.js:782 (getWalletEntryBanner)\nWeb: app/components/home-page/mobile/home-wallet/index.tsx\nRN: App/src/Components/HomeHeader/'
+    },
+    'ongoing-txn': {
+      title: 'Home — Ongoing Transaction Banner',
+      type: 'HOME',
+      desc: '"Upi Deposit - In Progress - 04 min: 26 sec - ₹1,500". Shows countdown timer from ETA calculation. Refresh CTA when stage_status === IN_PROGRESS. View all → Transaction Status page.',
+      api: 'POST /api/v1/payment-service/transaction-details/fetch-ongoing → recent_transaction object with stage_status, amount, created_date, stage_completion_eta_min',
+      nav: '"Check Status" → UPI Deposit Status | "View All" → Transaction History',
+      source: 'Transformer: home/green/utils/utils.js:1114 (getTransactionStatusGreen)\nTransformer: home/utils.js:564 (STATUS_MAPPER)\nTransformer: home/utils.js:603 (getUpdatedETA)'
+    },
+    'trouble-banner': {
+      title: 'Home — Trouble Banner',
+      type: 'HOME',
+      desc: '"Payment of ₹1,500 is facing trouble" with warning triangle icon. Replaces ongoing txn banner when deposit is stuck (FAILED/DELAYED). "Verify Payment >" CTA routes to UTR verification.',
+      api: 'Same as ongoing txn — stage_status determines which banner shows. FAILED → trouble banner.',
+      nav: '"Verify Payment" → UTR Verification screen',
+      source: 'Transformer: home/green/utils/utils.js (isFailedDepositCardVisible logic)'
+    },
+    'wallet-home': {
+      title: 'Wallet Home',
+      type: 'WALLET',
+      desc: 'Full wallet screen with tabs: Wallet (balance), TopUp, Withdraw, Fees, Rewards. Balance shows inr_free_balance (available) + inr_blocked_balance (in orders/collateral). Transaction history with deposits + withdrawals, paginated 20/page.',
+      api: 'GET /api/v1/custody-wallet-user/account-balances\nGET wallet-transactions_v2?limit=20&deposit_cursor=X&withdrawal_cursor=Y\nGET /api/v1/cspro/get-wallet-config',
+      nav: 'TopUp tab → Deposit Form | Withdraw tab → Withdrawal Form | History → Transaction Detail',
+      source: 'Web: app/components/wallet/index.tsx\nWeb: app/components/wallet/inrWallet/index.tsx\nRN: App/src/Containers/Wallet/index.tsx'
+    },
+    'deposit-form': {
+      title: 'Deposit Form',
+      type: 'ADD MONEY',
+      desc: 'Amount input with pill buttons (₹500, ₹1000, etc). Shows per-gateway availability icons. Validates amount against min/max from paymentConfig. Error: "You cannot deposit less than ₹X". Dynamic based on ADD_MONEY_LAYOUT query (version: v4).',
+      api: 'GraphQL: ADD_MONEY_LAYOUT(depositAmount, routedFromDigio, version:"v4")\nTransformer calls: GET /api/v1/user/user_additional_data?symbol=inr',
+      nav: 'Continue → Gateway Selection | Back → Wallet/Home',
+      source: 'RN: App/src/Containers/Deposit/DepositForm.tsx\nTransformer: payments/index.js:300 (getAddMoneyLayout)'
+    },
+    'gateway': {
+      title: 'Gateway Selection',
+      type: 'ADD MONEY',
+      desc: 'Payment method cards: UPI, Bank Transfer. Each shows availability, min/max limits, partner info. UPI disabled 12AM-3AM (card swapped to bottom, shows "unavailable till 3 AM"). Gateway filtering based on depositAmount vs partner limits.',
+      api: 'GraphQL: PAYMENT_GATEWAY_LAYOUT(depositAmount, version:"v2")\nTransformer: getCalculatedPaymentConfig() filters active partners',
+      nav: 'UPI → UPI Selection | Bank Transfer → Bank Transfer screen',
+      source: 'RN: App/src/Containers/Deposit/Gateway.tsx\nTransformer: payments/index.js:246 (getPaymentGatewayLayout)'
+    },
+    'upi-selection': {
+      title: 'UPI Selection',
+      type: 'UPI',
+      desc: 'List of saved UPI IDs or "Add new UPI ID" option. Consent bottom sheet for first-time. VPA verification via Surepass. Vendor auto-detected from @suffix (20+ app mappings). After selection: mutation GET_UPI_REDIRECTION_LINK → Linking.openURL(upiUrl).',
+      api: 'GET /api/v1/payment-service/upi/get-upi-ids\nPOST /api/v1/payment-service/upi/add-upi-id (verify)\nMutation: GET_UPI_REDIRECTION_LINK(amount, upiId, deviceOs) → TransactionLink',
+      nav: 'Submit → UPI App (deeplink) → Loader | Back → Gateway',
+      source: 'RN: App/src/Containers/UPI/index.tsx\nRN: App/src/CommonUtils/upiUtils.ts (openPaymentApp)\nTransformer: upi/dataSource.js:48 (getRedirectionLink)'
+    },
+    'upi-loader': {
+      title: 'UPI Deposit Loader',
+      type: 'UPI',
+      desc: 'Circular countdown timer (~5 min). "Verification in Progress" title. 3-step stepper: Payment Initiated (grey) → Verification in Progress (orange, active) → Deposit Completed (grey). "Go to Home" button. AppState listener detects return from UPI app.',
+      api: 'GraphQL: GET_UPI_LOADER_TIME(depositAmount)\nPolls: GET_UPI_DEPOSIT_STATUS(depositStatus, amount)',
+      nav: 'Timer expires or status changes → Deposit Status | "Go to Home" → Home',
+      source: 'RN: App/src/Containers/UpiDepositLoader/index.tsx'
+    },
+    'deposit-status': {
+      title: 'UPI Deposit Status',
+      type: 'UPI',
+      desc: 'Final status screen. Stepper shows current state. "Verification Pending - ETA: 2 mins" with orange badge. Subtitle: "Verification can take upto 40 hours". Details card: Amount, Initiated Date, UPI ID, Reference ID (copyable). "Help" link top-right. "Go Back" green button.',
+      api: 'POST /api/v1/payment-service/deposit-details/fetch → status_map array\nTransformer: getUpdatedDepositStatusDetailsData() builds stepper',
+      nav: '"Help" → Help & Support | "Go Back" → Wallet | If trouble → UTR Verify',
+      source: 'RN: App/src/Containers/UpiDepositStatus/index.tsx\nTransformer: payments/util.js:1245 (getUpdatedDepositStatusDetailsData)'
+    },
+    'utr-verify': {
+      title: 'UTR Verification',
+      type: 'RECOVERY',
+      desc: '"Verify UTR" section with text input: "Enter UTR Number" + green arrow submit. "How to get UTR? Know More" link → educational screen. Phone mockup carousel showing UTR location in GPay, PhonePe, Paytm, Amazon Pay. UTR is 12-digit bank reference number.',
+      api: 'POST /api/v1/payment-service/deposit-details/fetch-from-utr → should_process_refund, should_process_deposit, cta_use_case\nRefund: POST /api/v1/payment-service/deposit-details/sync-refund-for-utr',
+      nav: 'UTR found + deposit → Auto-credit | UTR found + refund → Bank details form | Not found → Support',
+      source: 'Transformer: payments/index.js:2366 (fetchUTRStatus)\nTransformer: payments/index.js:2611 (initiateRefund)'
+    },
+    'bank-transfer': {
+      title: 'Bank Transfer',
+      type: 'BANK',
+      desc: 'VA beneficiary details: Name, Account Number, IFSC, Bank Name with "Copy" buttons. "Add Payee" guide with per-bank instructions (SBIN, UTIB/Axis, ICIC, default — 7 steps each). Transfer type restrictions shown (Karnataka Bank: NEFT/RTGS/IMPS, Equitas: IMPS only).',
+      api: 'Mutation: DEPOSIT_MUTATION_V2 with gateway_name, gateway_account_type:"BANK_ACCOUNT"\nGET bank-urls via getBankUrls(ifsc_code.slice(0,4))',
+      nav: 'User goes to their bank app manually → settlement auto-detected',
+      source: 'RN: App/src/Containers/BankTransfer/index.tsx\nWeb: app/components/top-up/beneficiary-card/index.tsx\nWeb: app/config/add-payee.ts'
+    },
+    'help-support': {
+      title: 'Help & Support',
+      type: 'SUPPORT',
+      desc: 'Orange alert banner: "Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience." 24x7 support. Categories: Crypto. Search icon top-right.',
+      api: 'Layout fetched from backend',
+      nav: '"Crypto" → Support articles | Back → previous screen',
+      source: 'RN: App/src/Containers/HelpAndSupport/'
+    },
+    'withdrawal': {
+      title: 'Withdrawal Form',
+      type: 'WITHDRAW',
+      desc: 'Amount input (minimum ₹100, hardcoded). Bank account selection from linked accounts. Compliance gates checked before form: TOS → PMLA → ReKYC. Fee display (currently ₹0). Balance validation.',
+      api: 'POST /api/v1/custody-wallet-user/withdraw → returns withdrawal_uuid\nGET /api/v1/custody-wallet-user/bank-account\nGET /api/v1/cspro/get-wallet-config (min/max)',
+      nav: 'Continue → PIN Gate | Back → Wallet Home',
+      source: 'RN: App/src/Containers/Withdrawal/WithdrawalForm.tsx\nWeb: app/components/withdraw/withdraw-button/index.tsx'
+    },
+    'withdraw-security': {
+      title: 'Withdrawal Security (PIN + OTP)',
+      type: 'WITHDRAW',
+      desc: 'Step 1: 4-digit PIN input. remaining_validation_count shown on error. Lockout → PIN reset via /api/v1/reset-pin/init.\nStep 2: 6-digit email OTP. Sent to registered email. 60s resend timer (decimal 0.6→0.0). Resend triggers secureActionReInit.',
+      api: 'POST /api/v1/secure-action/init → secure_action_id\nPOST /api/v1/secure-action/verify → success + remaining_validation_count\nPOST /api/v1/secure-action/re-init → resend OTP',
+      nav: 'PIN OK → OTP screen | OTP OK → Success → Wallet | Lockout → PIN Reset',
+      source: 'Web: app/components/withdraw/withdraw-pin/index.tsx\nWeb: app/components/withdraw/email-otp/index.tsx'
+    }
+  };
+
+  function showScreenDetail(screenId) {
+    const d = screenDetails[screenId];
+    if (!d) return;
+
+    const html = `
+      <div class="detail-panel">
+        <h3>${d.title} <span class="badge badge-screen">${d.type}</span></h3>
+        <p style="margin-bottom:16px;">${d.desc}</p>
+
+        <div class="subsection">
+          <h4>API Calls</h4>
+          <div class="code-block">${d.api}</div>
+        </div>
+
+        <div class="subsection">
+          <h4>Navigation</h4>
+          <p style="font-size:13px;">${d.nav}</p>
+        </div>
+
+        <div class="subsection">
+          <h4>Source Files</h4>
+          <div class="code-block">${d.source}</div>
+        </div>
+      </div>
+    `;
+
+    // Show in current panel's detail area or create one
+    let detailEl = document.getElementById('screen-detail');
+    if (!detailEl) {
+      detailEl = document.createElement('div');
+      detailEl.id = 'screen-detail';
+      document.querySelector('.panel.active').appendChild(detailEl);
+    }
+    detailEl.innerHTML = html;
+    detailEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function highlightScreen(screenId) {
+    setTimeout(() => showScreenDetail(screenId), 100);
+  }
+
+  function filterScreens(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('#screen-cards .card').forEach(card => {
+      const text = card.textContent.toLowerCase();
+      card.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+
+  function filterAPIs(query) {
+    const q = query.toLowerCase();
+    document.querySelectorAll('.api-table tbody tr').forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(q) ? '' : 'none';
+    });
+  }
+</script>
+
+</body>
+</html>
