@@ -338,6 +338,10 @@
             <div class="caption">Trouble Banner<br>"₹1,500 is facing trouble"</div>
           </div>
           <div class="screenshot-frame">
+            <img src="screenshots/gateway-selection.png" alt="Gateway Selection - Deposit INR" onclick="openLightbox(this.src)">
+            <div class="caption">Gateway Selection<br>UPI (Recommended) + Bank Transfer</div>
+          </div>
+          <div class="screenshot-frame">
             <img src="screenshots/utr-verify-phonepe.png" alt="UTR Verify - PhonePe" onclick="openLightbox(this.src)">
             <div class="caption">UTR Verify (PhonePe)<br>12-digit UTR input + mockup</div>
           </div>
@@ -758,7 +762,8 @@ Home banner uses timeRemaining for "04 min: 26 sec" display</div>
               <div class="step-desc">
                 <strong>Gateway Selection</strong> — user picks "Bank Transfer" card (not UPI).<br>
                 Card shows: availability tag, transfer methods supported, min/max limits.<br>
-                <code>API: PAYMENT_GATEWAY_LAYOUT(depositAmount, version:"v2")</code>
+                <code>API: PAYMENT_GATEWAY_LAYOUT(depositAmount, version:"v2")</code><br><br>
+                <img src="screenshots/gateway-selection.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;max-height:280px;">
               </div>
             </div>
           </div>
@@ -1278,7 +1283,7 @@ If data is null → route to SUPPORT page</div>
     'gateway': {
       title: 'Gateway Selection',
       type: 'ADD MONEY',
-      desc: 'Payment method cards: UPI, Bank Transfer. Each shows availability, min/max limits, partner info. UPI disabled 12AM-3AM (card swapped to bottom, shows "unavailable till 3 AM"). Gateway filtering based on depositAmount vs partner limits.',
+      desc: 'Payment method cards: UPI (Recommended, ETA 5 mins, Fees ₹0) and Bank Transfer (Time Instant, Fees ₹0). UPI shows GPay/PhonePe/Paytm/Amazon/BHIM icons. Rules: "Add funds from UPI ID linked to CoinSwitch registered bank" + "Do not use Credit Cards". Bank Transfer: "Add CoinSwitch as beneficiary" + "Do not deposit using UPI apps". UPI disabled 12AM-3AM.<br><br><img src="screenshots/gateway-selection.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">',
       api: 'GraphQL: PAYMENT_GATEWAY_LAYOUT(depositAmount, version:"v2")\nTransformer: getCalculatedPaymentConfig() filters active partners',
       nav: 'UPI → UPI Selection | Bank Transfer → Bank Transfer screen',
       source: 'RN: App/src/Containers/Deposit/Gateway.tsx\nTransformer: payments/index.js:246 (getPaymentGatewayLayout)'
