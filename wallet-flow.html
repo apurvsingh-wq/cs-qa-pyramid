@@ -189,6 +189,9 @@
       <div class="sidebar-item" onclick="showTab('apis')">
         <span class="dot dot-green"></span> API Reference (23)
       </div>
+      <div class="sidebar-item" onclick="showTab('bank-transfer')">
+        <span class="dot dot-orange"></span> Bank Transfer Flow
+      </div>
       <div class="sidebar-item" onclick="showTab('utr')">
         <span class="dot dot-red"></span> UTR Flow
       </div>
@@ -709,6 +712,303 @@ Home banner uses timeRemaining for "04 min: 26 sec" display</div>
             <tr><td>23</td><td><code>/api/v1/cspro/get-user-volume-data</code></td><td>GET</td><td>User trading volume level for fee calculation</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- BANK TRANSFER FLOW TAB -->
+    <div class="panel" id="panel-bank-transfer">
+      <div class="section-title">Bank Transfer Flow — Step by Step</div>
+
+      <div class="highlight">
+        <strong>Bank Transfer</strong> is NEFT/RTGS/IMPS to a Virtual Account (VA) beneficiary. User adds CoinSwitch's VA as a payee in their banking app, then transfers INR. Backend auto-detects the credit.
+      </div>
+
+      <!-- Step-by-step flow -->
+      <div class="subsection">
+        <h4>Complete Flow: What Comes When</h4>
+
+        <div class="stepper">
+          <div class="step">
+            <div class="step-dot" style="background:var(--blue);"></div>
+            <div class="step-line" style="background:var(--blue);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 1: User taps "Add Money"</div>
+              <div class="step-desc">From Home Wallet Strip ("Add" button) or Wallet Tab ("Top Up"). Navigates to <strong>Deposit Form</strong>.</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--blue);"></div>
+            <div class="step-line" style="background:var(--blue);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 2: Enter Amount</div>
+              <div class="step-desc">
+                <strong>Deposit Form</strong> — amount input with pill buttons (₹500, ₹1000, etc).<br>
+                Per-gateway min/max validated. Gateway availability icons shown.<br>
+                <code>API: ADD_MONEY_LAYOUT(depositAmount, version:"v4")</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--blue);"></div>
+            <div class="step-line" style="background:var(--blue);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 3: Select "Bank Transfer"</div>
+              <div class="step-desc">
+                <strong>Gateway Selection</strong> — user picks "Bank Transfer" card (not UPI).<br>
+                Card shows: availability tag, transfer methods supported, min/max limits.<br>
+                <code>API: PAYMENT_GATEWAY_LAYOUT(depositAmount, version:"v2")</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 4: Create Virtual Account (VA)</div>
+              <div class="step-desc">
+                <code>Mutation: DEPOSIT_MUTATION_V2</code><br>
+                <code>POST /api/v1/custody-wallet-user/deposit</code><br>
+                Params: <code>{ currency: "inr", amount, gateway_name: "IDBI", gateway_account_type: "BANK_ACCOUNT", generate_account: true }</code><br>
+                Returns: <code>additional_data</code> containing VA beneficiary details.
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:var(--green);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 5: Show VA Beneficiary Details</div>
+              <div class="step-desc">
+                <strong>Bank Transfer Screen</strong> — displays 1 or 2 VA accounts (primary + secondary):<br><br>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;margin:8px 0;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Tag</span><span style="color:var(--green);font-weight:600;">RECOMMENDED</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Header</span><span>Primary Bank Account</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary Name</span><span>BitCipher LLP</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Bank Name</span><span><strong>Indian Bank</strong></span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">COINSW 1111 1111 47</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">IFSC Code</span><span style="font-family:monospace;">IDIB000B198</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Type</span><span>Current</span></div>
+                  <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Methods</span><span style="color:var(--green);">IMPS, NEFT & RTGS accepted</span></div>
+                </div>
+
+                <div style="background:var(--surface2);border:1px solid var(--red);border-radius:8px;padding:16px;margin:8px 0;opacity:0.7;">
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Tag</span><span style="color:var(--red);font-weight:600;">DEPRECATED</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Header</span><span>Secondary Bank Account</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Beneficiary Name</span><span>BitCipher LLP</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Bank Name</span><span><strong>Equitas Small Finance Bank</strong></span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Number</span><span style="font-family:monospace;">2412 8911 1111 1147</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">IFSC Code</span><span style="font-family:monospace;">ESFB0000CMS</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--text-muted);">Account Type</span><span>Current</span></div>
+                  <div style="display:flex;justify-content:space-between;"><span style="color:var(--text-muted);">Transfer Methods</span><span style="color:var(--orange);">Only IMPS accepted</span></div>
+                </div>
+
+                Each field has a <strong>"Copy"</strong> button (blue icon). Account number copies without spaces.
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:var(--green);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 6: User Opens Their Bank App</div>
+              <div class="step-desc">
+                User leaves CoinSwitch app and goes to their banking app (SBI YONO, Axis, ICICI iMobile, etc.).<br>
+                They need to <strong>add CoinSwitch's VA as a payee/beneficiary</strong> in their bank app, then make a transfer.
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content">
+              <div class="step-title">Step 6a: "Add Payee" Educational Guide (if first time)</div>
+              <div class="step-desc">
+                CoinSwitch shows bank-specific step-by-step instructions.<br>
+                <code>API: getBankUrls(ifsc_code.slice(0, 4))</code> → returns bank netbanking URL.<br>
+                If URL exists → redirect to bank. If empty → show "Add Payee" guide.
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content">
+              <div class="step-title">Step 7: Settlement (Auto-detected)</div>
+              <div class="step-desc">
+                Backend detects the incoming NEFT/RTGS/IMPS transfer via Karnataka Bank / Indian Bank.<br>
+                Credits the amount to user's CoinSwitch wallet. Transaction appears in wallet history.<br>
+                Home page banner updates: "Deposit Completed".
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Payee Instructions -->
+      <div class="subsection">
+        <h4>"Add Payee" Instructions (Per Bank)</h4>
+        <div class="highlight-warn">
+          First-time bank transfer users must add CoinSwitch's VA as a beneficiary in their banking app. The app shows bank-specific 7-step guides.
+        </div>
+
+        <div class="card-grid">
+          <div class="card">
+            <h4>SBI (YONO)</h4>
+            <p>1. Open YONO app<br>2. Tap "YONO Pay"<br>3. Tap "Quick transfer"<br>4. Select "Other Bank"<br>5. Enter beneficiary details<br>6. Tap "Next" → Enter OTP<br>7. Beneficiary added</p>
+            <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">IFSC: SBIN</div>
+          </div>
+          <div class="card">
+            <h4>Axis Bank</h4>
+            <p>1. Open Axis Mobile app<br>2. Tap "Add New"<br>3. Select "Other Bank Payee"<br>4. Enter beneficiary name<br>5. Enter account number<br>6. Enter IFSC code<br>7. Tap "Add payee"</p>
+            <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">IFSC: UTIB</div>
+          </div>
+          <div class="card">
+            <h4>ICICI (iMobile)</h4>
+            <p>1. Open iMobile app<br>2. Tap "Transact" → "Send Money"<br>3. Select "Other Bank"<br>4. Enter beneficiary details<br>5. Tap "Proceed"<br>6. Select payee → Transfer<br>7. Confirm with OTP</p>
+            <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">IFSC: ICIC</div>
+          </div>
+          <div class="card">
+            <h4>Union Bank (Vyom)</h4>
+            <p>1. Open Vyom app<br>2. Tap "Send Money"<br>3. Tap "Quick Transfer"<br>4. Select "Other Bank Account"<br>5. Enter account details<br>6. Tap "Proceed"<br>7. Confirm with OTP</p>
+            <div class="card-tag" style="background:var(--blue-bg);color:var(--blue)">IFSC: UBIN</div>
+          </div>
+          <div class="card">
+            <h4>Default (All Other Banks)</h4>
+            <p>1. Login to your banking app<br>2. Go to "Add Payee/Beneficiary"<br>3. Select "Other Bank"<br>4. Enter beneficiary name<br>5. Enter account number + IFSC<br>6. Verify with OTP<br>7. Make transfer</p>
+            <div class="card-tag" style="background:var(--text-muted);color:var(--text)">ALL OTHERS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bank Netbanking URLs -->
+      <div class="subsection">
+        <h4>Bank Netbanking Redirect URLs</h4>
+        <div class="highlight">
+          When user taps "Top Up" → <code>getBankUrls(ifsc_code.slice(0,4))</code>. If a URL exists, user is redirected to their bank's netbanking login. Otherwise, "Add Payee" guide is shown.
+        </div>
+        <table>
+          <thead><tr><th>Bank</th><th>IFSC Prefix</th><th>Redirect URL</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Indian Bank</strong></td><td>IDIB</td><td><code>netbanking.indianbank.in/jsp/startIB.jsp</code></td></tr>
+            <tr><td><strong>Shivalik Bank</strong></td><td>SMCB</td><td><code>shivalikinternetbanking.com/corp/AuthenticationController...</code></td></tr>
+            <tr><td><strong>Karnataka Bank</strong></td><td>KARB</td><td><code>moneyclick.ktkbank.com/BankAwayRetail/AuthenticationController...</code></td></tr>
+            <tr><td>SBI</td><td>SBIN</td><td>YONO app (no URL redirect)</td></tr>
+            <tr><td>HDFC</td><td>HDFC</td><td>Mobile app (no URL redirect)</td></tr>
+            <tr><td>ICICI</td><td>ICIC</td><td>iMobile app (no URL redirect)</td></tr>
+            <tr><td>Axis</td><td>UTIB</td><td>Axis Mobile app (no URL redirect)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VA Data Model -->
+      <div class="subsection">
+        <h4>VA Beneficiary Data Model</h4>
+        <div class="code-block">// API Response: /api/v1/custody-wallet-user/deposit (or getCustodyWalletUserDeposit)
+// Returns array of VA accounts sorted by priority
+
+interface IUserVaProps = Array&lt;{
+  bank_details: Array&lt;{
+    label: string;    // "Beneficiary Name", "Account Number", "IFSC Code", "Bank Name"
+    value: string;    // Actual value
+  }&gt;;
+  header_label: string;     // "Primary Bank Account" or "Secondary Bank Account"
+  id: string;               // "primary" or "secondary"
+  sub_header_label: string; // "IMPS, NEFT & RTGS transfer accepted" or "Only IMPS accepted"
+  tag: string;              // "RECOMMENDED" or "UNAVAILABLE"
+}&gt;;
+
+// Priority sorting: primary (priority=1) always shown first
+// bank_details[0] = Bank Name
+// bank_details[1] = Gateway Name (used for topUpUser() API call)
+
+// Multi-VA: V2 deposit API with multipleVA feature flag
+// Collapsible sections: Primary expanded, Secondary collapsed</div>
+      </div>
+
+      <!-- Transfer Methods Comparison -->
+      <div class="subsection">
+        <h4>Transfer Methods: What's Supported Where</h4>
+        <table>
+          <thead><tr><th>Method</th><th>Indian Bank (Primary)</th><th>Equitas (Deprecated)</th><th>Speed</th><th>Limit</th></tr></thead>
+          <tbody>
+            <tr><td><strong>IMPS</strong></td><td style="color:var(--green);">Supported</td><td style="color:var(--green);">Supported</td><td>Instant (seconds)</td><td>Up to ₹5L per txn</td></tr>
+            <tr><td><strong>NEFT</strong></td><td style="color:var(--green);">Supported</td><td style="color:var(--red);">Not supported</td><td>30 min batches</td><td>No limit</td></tr>
+            <tr><td><strong>RTGS</strong></td><td style="color:var(--green);">Supported</td><td style="color:var(--red);">Not supported</td><td>Instant (real-time)</td><td>Min ₹2L, no max</td></tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-danger">
+          <strong>Why Equitas is deprecated:</strong> Only IMPS supported → users with amounts &gt;₹5L couldn't deposit. No NEFT/RTGS meant no fallback for high-value transfers. Indian Bank (primary) supports all 3 methods.
+        </div>
+      </div>
+
+      <!-- Deprecation Flow -->
+      <div class="subsection">
+        <h4>Equitas → Shivalik/Indian Bank Migration</h4>
+        <div class="stepper">
+          <div class="step">
+            <div class="step-dot" style="background:var(--red);"></div>
+            <div class="step-line" style="background:var(--red);"></div>
+            <div class="step-content">
+              <div class="step-title">Alert Banner on Help & Support</div>
+              <div class="step-desc">"Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank as a beneficiary for seamless deposit experience."</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--orange);"></div>
+            <div class="step-line" style="background:var(--orange);"></div>
+            <div class="step-content">
+              <div class="step-title">User Action Required</div>
+              <div class="step-desc">User must go to their banking app → Remove Equitas VA payee → Add new Indian Bank or Shivalik Bank VA as payee using updated account details.</div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-dot" style="background:var(--green);"></div>
+            <div class="step-line" style="background:transparent;"></div>
+            <div class="step-content">
+              <div class="step-title">New Beneficiary Banks</div>
+              <div class="step-desc">
+                <strong>Shivalik Bank</strong> (IFSC: SMCB) — Full IMPS + NEFT + RTGS support<br>
+                <strong>Indian Bank</strong> (IFSC: IDIB) — Full IMPS + NEFT + RTGS support<br>
+                Both recommended as replacements for Equitas IMPS-only limitation.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <img src="screenshots/help-support-equitas.png" alt="Equitas Deprecation Alert" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Help & Support showing Equitas Bank deprecation alert</div>
+        </div>
+      </div>
+
+      <!-- API Sequence -->
+      <div class="subsection">
+        <h4>API Call Sequence</h4>
+        <div class="code-block">1. GET /api/v1/user/user_additional_data?symbol=inr
+   → Returns deposit config with BANK_ACCOUNT partners, min/max, availability
+
+2. POST /api/v1/custody-wallet-user/deposit
+   → Params: { currency: "inr", amount, gateway_name, gateway_account_type: "BANK_ACCOUNT", generate_account: true }
+   → Returns: VA beneficiary details (bank_details array)
+
+3. GET getBankUrls(ifsc_code.slice(0, 4))
+   → Returns bank-specific netbanking URL (or empty → show Add Payee guide)
+
+4. [USER TRANSFERS MONEY FROM THEIR BANK APP]
+
+5. POST /api/v1/payment-service/transaction-details/fetch-ongoing
+   → Backend auto-detects incoming transfer
+   → Updates ongoing transaction status on home page
+
+6. GET wallet-transactions_v2?limit=20
+   → Deposit appears in transaction history as COMPLETED</div>
       </div>
     </div>
 
