@@ -166,7 +166,7 @@
 
 <div class="header">
   <h1>CoinSwitch Wallet Flow — Prompt Pack</h1>
-  <p>Add Money + Withdraw + Balance + Transaction History | 14 Screens | 23 APIs | 2 Vendors</p>
+  <p>Add Money + Withdraw + Balance + Transaction History | 14 Screens | 23 APIs | 4 Vendors (2 UPI + 2 Bank Transfer)</p>
 </div>
 
 <div class="layout">
@@ -221,7 +221,7 @@
       <div class="stat-row">
         <div class="stat"><div class="stat-value" style="color:var(--blue)">14</div><div class="stat-label">Screens</div></div>
         <div class="stat"><div class="stat-value" style="color:var(--green)">23</div><div class="stat-label">API Endpoints</div></div>
-        <div class="stat"><div class="stat-value" style="color:var(--orange)">2</div><div class="stat-label">Payment Vendors</div></div>
+        <div class="stat"><div class="stat-value" style="color:var(--orange)">4</div><div class="stat-label">Payment Vendors</div></div>
         <div class="stat"><div class="stat-value" style="color:var(--purple)">9</div><div class="stat-label">Status States</div></div>
         <div class="stat"><div class="stat-value" style="color:var(--red)">15+</div><div class="stat-label">Entry Points</div></div>
       </div>
@@ -470,36 +470,17 @@
     <div class="panel" id="panel-vendors">
       <div class="section-title">Payment Vendors</div>
 
+      <!-- UPI VENDORS -->
       <div class="subsection">
-        <h4>Bank / VA Providers</h4>
-
-        <div class="vendor-card">
-          <h4>Shivalik Small Finance Bank <span class="badge badge-active">ACTIVE — PRIMARY VA</span></h4>
-          <table>
-            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Primary VA provider for Bank Transfer deposits</td></tr>
-            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>NEFT, RTGS, IMPS</strong> (all supported)</td></tr>
-            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>SMCB0000CMS</code></td></tr>
-            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: 2550 0081 4711 2751</td></tr>
-            <tr><td style="color:var(--text-muted)">Tag</td><td style="color:var(--green);font-weight:600;">RECOMMENDED</td></tr>
-            <tr><td style="color:var(--text-muted)">Time Restriction</td><td style="color:var(--orange);">Unavailable from 10:00 PM – 06:00 AM</td></tr>
-          </table>
+        <h4 style="color:var(--purple);">UPI Payment — Vendors (Acquirers)</h4>
+        <div class="highlight">
+          When a user pays via UPI, money goes to CoinSwitch's UPI VPA. The <strong>acquirer bank</strong> behind each VPA processes the transaction. Two acquirers: Karnataka Bank (active) and Equitas Bank (deprecated).
         </div>
 
-        <div class="vendor-card">
-          <h4>Indian Bank <span class="badge badge-active">ACTIVE — ALTERNATE VA</span></h4>
+        <div class="vendor-card" style="border-color:var(--green);">
+          <h4>Karnataka Bank <span class="badge badge-active">ACTIVE — PRIMARY UPI ACQUIRER</span></h4>
           <table>
-            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Alternate VA provider for Bank Transfer deposits</td></tr>
-            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>NEFT, RTGS, IMPS</strong> (all supported)</td></tr>
-            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>IDIB000B198</code></td></tr>
-            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: COINSW 8147 1127 51</td></tr>
-            <tr><td style="color:var(--text-muted)">Availability</td><td style="color:var(--green);">24/7 — no time restrictions</td></tr>
-          </table>
-        </div>
-
-        <div class="vendor-card">
-          <h4>Karnataka Bank <span class="badge badge-active">ACTIVE — UPI ACQUIRER</span></h4>
-          <table>
-            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>UPI payment acquirer — processes UPI deposits</td></tr>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>UPI payment acquirer — receives user's UPI payment</td></tr>
             <tr><td style="color:var(--text-muted)">UPI VPAs (6)</td><td>
               <div class="vendor-vpas">
                 <span class="vpa-chip">csvda@kbl</span>
@@ -510,8 +491,62 @@
                 <span class="vpa-chip">bldeposit6@kbl</span>
               </div>
             </td></tr>
-            <tr><td style="color:var(--text-muted)">Notes</td><td>Handles 6 of 7 UPI VPAs. User's UPI payment goes to these VPAs.</td></tr>
+            <tr><td style="color:var(--text-muted)">Share</td><td><strong>6 of 7</strong> UPI VPAs (86%)</td></tr>
+            <tr><td style="color:var(--text-muted)">Availability</td><td style="color:var(--green);">24/7 (UPI disabled app-wide 12AM-3AM)</td></tr>
           </table>
+        </div>
+
+        <div class="vendor-card" style="border-color:var(--red);">
+          <h4>Equitas Bank <span class="badge badge-deprecated">DEPRECATED — UPI ACQUIRER</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>UPI payment acquirer — being sunset</td></tr>
+            <tr><td style="color:var(--text-muted)">UPI VPAs (1)</td><td>
+              <div class="vendor-vpas">
+                <span class="vpa-chip" style="border-color:var(--red);">yap165725@equitas</span>
+              </div>
+            </td></tr>
+            <tr><td style="color:var(--text-muted)">Share</td><td><strong>1 of 7</strong> UPI VPAs (14%)</td></tr>
+            <tr><td style="color:var(--text-muted)">Deprecation</td><td style="color:var(--red);">"Equitas Bank will no longer be supported for bank transfers. Please add Shivalik Bank or Indian Bank."</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- BANK TRANSFER VENDORS -->
+      <div class="subsection">
+        <h4 style="color:var(--orange);">Bank Transfer — Vendors (VA Providers)</h4>
+        <div class="highlight">
+          When a user pays via Bank Transfer (NEFT/RTGS/IMPS), they send money to a <strong>Virtual Account (VA)</strong> at one of these banks. The VA is a beneficiary the user adds in their own banking app. Two VA providers: Shivalik (primary) and Indian Bank (alternate).
+        </div>
+
+        <div class="vendor-card" style="border-color:var(--green);">
+          <h4>Shivalik Small Finance Bank <span class="badge badge-active">PRIMARY VA — RECOMMENDED</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Primary Virtual Account provider for bank transfer deposits</td></tr>
+            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>IMPS, NEFT & RTGS</strong> (all supported)</td></tr>
+            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>SMCB0000CMS</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: <code>2550 0081 4711 2751</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Account Type</td><td>Current</td></tr>
+            <tr><td style="color:var(--text-muted)">Tag</td><td style="color:var(--green);font-weight:600;">RECOMMENDED</td></tr>
+            <tr><td style="color:var(--text-muted)">Time Restriction</td><td style="color:var(--orange);font-weight:600;">Unavailable from 10:00 PM – 06:00 AM</td></tr>
+          </table>
+          <div style="margin-top:8px;">
+            <img src="screenshots/bank-transfer-va-shivalik.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;max-height:240px;">
+          </div>
+        </div>
+
+        <div class="vendor-card">
+          <h4>Indian Bank <span class="badge badge-active">ALTERNATE VA</span></h4>
+          <table>
+            <tr><td style="width:140px;color:var(--text-muted)">Role</td><td>Alternate Virtual Account provider — fallback when Shivalik is unavailable</td></tr>
+            <tr><td style="color:var(--text-muted)">Transfer Methods</td><td><strong>IMPS, NEFT & RTGS</strong> (all supported)</td></tr>
+            <tr><td style="color:var(--text-muted)">IFSC</td><td><code>IDIB000B198</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Beneficiary</td><td>BitCipher LLP — Account: <code>COINSW 8147 1127 51</code></td></tr>
+            <tr><td style="color:var(--text-muted)">Account Type</td><td>Current</td></tr>
+            <tr><td style="color:var(--text-muted)">Availability</td><td style="color:var(--green);font-weight:600;">24/7 — no time restrictions</td></tr>
+          </table>
+          <div style="margin-top:8px;">
+            <img src="screenshots/bank-transfer-va-indian-bank.png" class="screenshot-inline" onclick="openLightbox(this.src)" style="cursor:pointer;max-height:240px;">
+          </div>
         </div>
 
         <div class="vendor-card" style="border-color:var(--red);">
@@ -1197,6 +1232,7 @@ If data is null → route to SUPPORT page</div>
           <thead><tr><th>Rule</th><th>Time</th><th>Behavior</th></tr></thead>
           <tbody>
             <tr><td><strong>UPI disabled</strong></td><td>12:00 AM – 3:00 AM</td><td>UPI card hidden or shows "UPI is unavailable till 3 AM". Bank Transfer card promoted to top.</td></tr>
+            <tr><td><strong>Shivalik VA unavailable</strong></td><td>10:00 PM – 6:00 AM</td><td>Primary VA shows orange banner: "Unavailable from 10:00 PM - 06:00 AM". Indian Bank (Alternate) available 24/7 as fallback.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1230,10 +1266,13 @@ If data is null → route to SUPPORT page</div>
       <div class="subsection">
         <h4>Vendor Rules</h4>
         <div class="highlight-danger">
-          <strong>Equitas Bank Deprecated:</strong> Banner shown on Help & Support. Users directed to add "Shivalik Bank" or "Indian Bank" as beneficiary. Only IMPS supported (no NEFT/RTGS). 1 of 7 UPI VPAs.
+          <strong>Equitas Bank Deprecated (UPI):</strong> 1 of 7 UPI VPAs (@equitas). Banner on Help & Support directing users to switch.
         </div>
         <div class="highlight">
-          <strong>Karnataka Bank Primary:</strong> 6 of 7 UPI VPAs. Supports NEFT + RTGS + IMPS for bank transfers. Primary VA provider.
+          <strong>UPI:</strong> Karnataka Bank = primary acquirer (6/7 VPAs @kbl). Equitas = deprecated (1/7 @equitas).
+        </div>
+        <div class="highlight" style="border-left-color:var(--orange);">
+          <strong>Bank Transfer:</strong> Shivalik = primary VA (Recommended, unavailable 10PM-6AM). Indian Bank = alternate VA (24/7 fallback).
         </div>
       </div>
 
