@@ -19,6 +19,7 @@
     --g8: #f97316; --g8-bg: rgba(249,115,22,0.12);
     --g9: #ef4444; --g9-bg: rgba(239,68,68,0.12);
     --green: #10b981;
+    --gold: #f59e0b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -130,6 +131,7 @@
   .tag-warn { background: rgba(245,158,11,0.15); color: #fcd34d; }
   .tag-report { background: rgba(16,185,129,0.15); color: #6ee7b7; }
   .tag-ui { background: rgba(168,85,247,0.15); color: #c4b5fd; }
+  .tag-new { background: rgba(245,158,11,0.15); color: #fcd34d; }
 
   /* Reference box */
   .ref-box {
@@ -160,6 +162,31 @@
   /* Active highlight on pyramid */
   .pyramid-row.highlighted .pyramid-block { box-shadow: 0 0 20px rgba(255,255,255,0.1); }
 
+  /* Screen coverage table */
+  .screen-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 16px; }
+  .screen-table th {
+    text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-dim); font-weight: 600;
+    border-bottom: 1px solid var(--card-border); background: rgba(30,41,59,0.4);
+  }
+  .screen-table td {
+    padding: 6px 8px; border-bottom: 1px solid rgba(30,41,59,0.4); color: var(--text);
+    font-family: 'JetBrains Mono', monospace, monospace;
+  }
+  .screen-table .check { color: #6ee7b7; }
+  .screen-table .skip { color: var(--text-dim); }
+
+  /* Layer badges */
+  .layer-badge {
+    display: inline-block; padding: 2px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: 700; margin-right: 2px;
+  }
+  .l1 { background: rgba(59,130,246,0.2); color: #93c5fd; }
+  .l2 { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+  .l3 { background: rgba(168,85,247,0.2); color: #c4b5fd; }
+  .l4 { background: rgba(245,158,11,0.2); color: #fcd34d; }
+  .l5 { background: rgba(239,68,68,0.2); color: #fca5a5; }
+
   @media (max-width: 768px) {
     .freq-badge { display: none; }
     .pyramid-block { padding: 12px 8px; gap: 6px; }
@@ -174,7 +201,7 @@
 <!-- Hero -->
 <div class="hero">
   <h1>Flutter QA Testing Pyramid</h1>
-  <p>9-gate pipeline. PRO web (master) is the benchmark. Flutter is the test target. Click any layer to see details.</p>
+  <p>9-gate pipeline with AI-powered test generation. PRO web (master) is the benchmark. Flutter is the test target. Click any layer to see details.</p>
   <div class="hero-meta">
     <span>CoinSwitch PRO</span>
     <span>April 2026</span>
@@ -193,12 +220,12 @@
     <div class="lbl">Ground Truth Screens</div>
   </div>
   <div class="stat-seg">
-    <div class="num" style="color:var(--g6)">49</div>
-    <div class="lbl">YAML Sequences</div>
+    <div class="num" style="color:var(--gold)">356</div>
+    <div class="lbl">Generated Tests</div>
   </div>
   <div class="stat-seg">
-    <div class="num" style="color:var(--g9)">26</div>
-    <div class="lbl">Current Tests (0.3%)</div>
+    <div class="num" style="color:var(--g6)">5</div>
+    <div class="lbl">Screens Covered (L1-L5)</div>
   </div>
   <div class="stat-seg">
     <div class="num" style="color:var(--green)">9</div>
@@ -296,7 +323,7 @@
         <span class="gate-num">G4</span>
         <div>
           <div class="gate-name">Unit + Widget Tests</div>
-          <div class="gate-info">538+ existing, Zephyr-parameterized, spec-driven</div>
+          <div class="gate-info">356 tests across 5 layers, AI-generated</div>
         </div>
         <div class="gate-right">~3 min</div>
       </div>
@@ -331,39 +358,94 @@
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
       <tr><td><strong>G1: Compile</strong></td><td><code>flutter analyze</code> — zero errors, zero warnings. Catches missing imports, type mismatches, null safety violations.</td></tr>
-      <tr><td><strong>G2: Lint</strong></td><td><code>dart format</code> + custom rules in <code>analysis_options.yaml</code>. Enforces: doc comments on public APIs, Riverpod providers = <code>*Provider</code>, widgets = PascalCase. Pre-commit hook generates missing dartdoc stubs (like Doxygen auto-generation).</td></tr>
-      <tr><td><strong>G3: Static</strong></td><td>Covered by Dart's sound null safety + <code>flutter analyze</code>. No implicit casts, no unused variables/imports. <code>custom_lint</code> for project-specific rules.</td></tr>
-      <tr><td><strong>Industry ref</strong></td><td>Equivalent to gcc compilation + Doxygen + static cast checks in C++ pipelines.</td></tr>
-      <tr><td><strong>When</strong></td><td>Every PR + lefthook pre-push hook (runs locally before code leaves your machine).</td></tr>
+      <tr><td><strong>G2: Lint</strong></td><td><code>dart format</code> + custom rules in <code>analysis_options.yaml</code>. Enforces: doc comments on public APIs, Riverpod providers = <code>*Provider</code>, widgets = PascalCase.</td></tr>
+      <tr><td><strong>G3: Static</strong></td><td>Covered by Dart's sound null safety + <code>flutter analyze</code>. No implicit casts, no unused variables/imports.</td></tr>
+      <tr><td><strong>When</strong></td><td>Every PR + lefthook pre-push hook</td></tr>
       <tr><td><strong>Time</strong></td><td>~30 seconds</td></tr>
     </table>
   </div>
 
   <!-- G4 -->
   <div class="detail-section" id="detail-g4">
-    <h2><span class="dot" style="background:var(--g4)"></span> Gate 4: Unit + Widget Tests <span class="tag tag-block">BLOCKER</span></h2>
-    <p>The workhorse. All existing tests must pass (regression check). New files must have tests. Widget tests are parameterized from Zephyr test cases with expected values from PRO web FORM_SPEC and DATA_MAP.</p>
+    <h2><span class="dot" style="background:var(--g4)"></span> Gate 4: Unit + Widget Tests <span class="tag tag-block">BLOCKER</span> <span class="tag tag-new">AI-GENERATED</span></h2>
+    <p>The workhorse. 356 tests across 5 screens, organized into 5 layers. Generated by the <code>/generate-tests</code> skill which analyzes source code, extracts testable logic, and produces co-located test files with provider overrides and frozen fixtures.</p>
+
+    <h3 style="font-size:14px;color:var(--text-bright);margin:20px 0 12px">5-Layer Test Architecture</h3>
+    <table class="detail-table">
+      <tr><th>Layer</th><th>What it tests</th><th>Speed</th><th>Pattern</th></tr>
+      <tr><td><span class="layer-badge l1">L1</span> Pure Logic</td><td>Static methods, math, formatting, model properties</td><td>~1ms</td><td><code>expect(Class.staticMethod(input), output)</code></td></tr>
+      <tr><td><span class="layer-badge l2">L2</span> Contract</td><td>fromJson factories, API shape, alternate WebSocket keys</td><td>~1ms</td><td><code>Model.fromJson(loadFixture(...))</code></td></tr>
+      <tr><td><span class="layer-badge l3">L3</span> Provider</td><td>State transitions, computed values, async resolution</td><td>~5ms</td><td><code>ProviderContainer</code> + overrides</td></tr>
+      <tr><td><span class="layer-badge l4">L4</span> Widget</td><td>Single extracted widget in isolation, 4 async states</td><td>~50ms</td><td><code>ProviderScope(overrides: [...])</code></td></tr>
+      <tr><td><span class="layer-badge l5">L5</span> Page</td><td>Full page: tabs, refresh, lifecycle, composition</td><td>~100ms</td><td>All providers overridden, <code>ignoreOverflowErrors()</code></td></tr>
+    </table>
+
+    <h3 style="font-size:14px;color:var(--text-bright);margin:20px 0 12px">Screen Coverage</h3>
+    <table class="screen-table">
+      <tr><th>Screen</th><th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th><th>Total</th></tr>
+      <tr>
+        <td>Futures Market</td>
+        <td class="check">39</td><td class="check">19</td><td class="check">5</td><td class="skip">—</td><td class="check">22</td><td><strong>85</strong></td>
+      </tr>
+      <tr>
+        <td>PRO Futures Home</td>
+        <td class="check">15</td><td class="skip">—</td><td class="check">12</td><td class="check">24</td><td class="check">12</td><td><strong>63</strong></td>
+      </tr>
+      <tr>
+        <td>Futures Positions</td>
+        <td class="check">31</td><td class="skip">—</td><td class="check">12</td><td class="check">10</td><td class="check">15</td><td><strong>68</strong></td>
+      </tr>
+      <tr>
+        <td>Smart Invest</td>
+        <td class="check">18</td><td class="check">20</td><td class="check">14</td><td class="skip">—</td><td class="skip">—</td><td><strong>52</strong></td>
+      </tr>
+      <tr>
+        <td>Trade Widget Sheet</td>
+        <td class="check">25</td><td class="skip">—</td><td class="check">12</td><td class="check">34</td><td class="check">17</td><td><strong>88</strong></td>
+      </tr>
+      <tr style="border-top:2px solid var(--card-border)">
+        <td><strong>Total</strong></td>
+        <td><strong>128</strong></td><td><strong>39</strong></td><td><strong>55</strong></td><td><strong>68</strong></td><td><strong>66</strong></td><td><strong style="color:#fcd34d">356</strong></td>
+      </tr>
+    </table>
+    <p style="margin-top:12px;font-size:11px">
+      <span class="skip">—</span> = intentionally skipped. L4 skips when no <code>widgets/</code> subfolder. L2 skips when models are already tested in another screen. L5 skips when page has unresolvable dependencies (WebView, FeatureFlags).
+    </p>
+
+    <h3 style="font-size:14px;color:var(--text-bright);margin:20px 0 12px">Key Patterns Learned (20 rules)</h3>
+    <table class="detail-table">
+      <tr><th style="width:180px">Pattern</th><th>Details</th></tr>
+      <tr><td><strong>Unit > Widget</strong></td><td>Extract private helpers to <code>static</code> and unit test them. Only widget-test what needs UI rendering.</td></tr>
+      <tr><td><strong>Frozen fixtures</strong></td><td>Load from <code>test/fixtures/api_responses/</code> via <code>loadFixture()</code>. Never hardcode mock data inline.</td></tr>
+      <tr><td><strong>4 async states</strong></td><td>Every async widget tested with: Loading, Error, Empty, Data. StreamController for loading, Stream.error for error.</td></tr>
+      <tr><td><strong>Provider override</strong></td><td><code>provider.overrideWith((ref) => fixedValue)</code> bypasses the real dependency chain in L4/L5.</td></tr>
+      <tr><td><strong>Overflow suppression</strong></td><td><code>ignoreOverflowErrors()</code> must be called INSIDE testWidgets (framework resets FlutterError.onError after setUp).</td></tr>
+      <tr><td><strong>Tab animation</strong></td><td>After <code>tester.tap()</code>, need <code>pump()</code> + <code>pump(400ms)</code> for TabBarView to switch content.</td></tr>
+      <tr><td><strong>Navigation</strong></td><td>Don't test actual navigation (GoRouter throws without router). Verify tappable element exists instead.</td></tr>
+      <tr><td><strong>Co-located tests</strong></td><td>Tests live in <code>lib/features/{name}/test/</code>, symlinked from <code>test/features/{name}</code>.</td></tr>
+    </table>
+
+    <h3 style="font-size:14px;color:var(--text-bright);margin:20px 0 12px">/generate-tests Skill</h3>
+    <p>AI-powered test generation skill. Analyzes source code, plans tests across L1-L5, generates files, and verifies with <code>flutter test</code> — all in one shot.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
-      <tr><td><strong>Regression</strong></td><td><code>flutter test</code> — all 538+ existing tests must pass. If your new code breaks someone else's test = blocked.</td></tr>
-      <tr><td><strong>New files</strong></td><td>Git diff detects new <code>.dart</code> files in <code>lib/</code>. If no corresponding <code>_test.dart</code> exists, gate warns.</td></tr>
-      <tr><td><strong>Test source</strong></td><td>Zephyr case title (WHAT) + FORM_SPEC/DATA_MAP (expected values from PRO web) = parameterized test. Example: CSK-T988 "Verify stop limit with Min/Max quantity" → <code>testWidgets('min/max quantity — CSK-T988', ...)</code></td></tr>
-      <tr><td><strong>Mock data</strong></td><td>API responses mocked from DATA_MAP (captured from PRO web HARs). Same response shapes, same edge cases.</td></tr>
-      <tr><td><strong>When</strong></td><td>Every PR</td></tr>
-      <tr><td><strong>Time</strong></td><td>~2-3 minutes</td></tr>
+      <tr><td><strong>Invocation</strong></td><td><code>/generate-tests lib/features/{screen}/</code></td></tr>
+      <tr><td><strong>Process</strong></td><td>Analyze → Extract helpers → Create test dir + symlink → Generate L1-L5 files → Add mock builders → Verify → Report</td></tr>
+      <tr><td><strong>Validation</strong></td><td>Tested on 3 screens in parallel: 208 tests generated, 208/208 passing on first run</td></tr>
+      <tr><td><strong>Smart skipping</strong></td><td>Skips L4 when no widgets/ subfolder. Skips L2 when models already tested. Skips L5 when page has WebView/FeatureFlags.</td></tr>
+      <tr><td><strong>Time</strong></td><td>~8-9 minutes per screen (analyze + generate + verify)</td></tr>
     </table>
   </div>
 
   <!-- G5 -->
   <div class="detail-section" id="detail-g5">
     <h2><span class="dot" style="background:var(--green)"></span> Gate 5: Code Coverage Report <span class="tag tag-report">REPORT</span></h2>
-    <p>Coverage report generated and posted as PR comment. Doesn't auto-fail — reviewers enforce thresholds. Traceability matrix auto-attached showing Zephyr coverage.</p>
+    <p>Coverage report generated and posted as PR comment. Doesn't auto-fail — reviewers enforce thresholds.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
       <tr><td><strong>Tool</strong></td><td><code>flutter test --coverage</code> → <code>lcov</code> report. Per-file % and diff from base branch.</td></tr>
-      <tr><td><strong>Threshold</strong></td><td><strong>≥90%</strong> for logic files (order_logic, providers). <strong>≥80%</strong> for UI widgets (harder-to-test visual paths). Industry standard: ≥95%.</td></tr>
-      <tr><td><strong>Traceability</strong></td><td>Auto-generated matrix attached to PR: "X of Y Zephyr cases from this screen are covered. Missing: CSK-T989, CSK-T990."</td></tr>
-      <tr><td><strong>Reviewer</strong></td><td>If coverage < threshold, dev must explain why or increase coverage. Reviewer's call to approve or block.</td></tr>
+      <tr><td><strong>Threshold</strong></td><td><strong>&#8805;90%</strong> for logic files. <strong>&#8805;80%</strong> for UI widgets.</td></tr>
+      <tr><td><strong>Traceability</strong></td><td>Auto-generated matrix: "X of Y Zephyr cases from this screen are covered."</td></tr>
       <tr><td><strong>Time</strong></td><td>~30 seconds (generated during Gate 4 run)</td></tr>
     </table>
   </div>
@@ -371,57 +453,47 @@
   <!-- G6 -->
   <div class="detail-section" id="detail-g6">
     <h2><span class="dot" style="background:var(--g6)"></span> Gate 6: Golden / Visual Regression <span class="tag tag-ui">UI-SPECIFIC</span> <span class="tag tag-block">BLOCKER</span></h2>
-    <p>Pixel-diff every widget against approved golden files derived from PRO web screenshots. If Flutter drifts visually from PRO web, the test fails. This is how we guarantee visual parity.</p>
+    <p>Pixel-diff every widget against approved golden files derived from PRO web screenshots.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
-      <tr><td><strong>Tool</strong></td><td>Flutter's built-in <code>matchesGoldenFile()</code>. Each widget test includes: <code>expectLater(widget, matchesGoldenFile('goldens/stop_limit.png'))</code></td></tr>
-      <tr><td><strong>Baselines</strong></td><td>PRO web ground truth screenshots → converted to Flutter golden files. Multiple sizes: 320px (iPhone SE), 428px (iPhone 14 Pro Max).</td></tr>
-      <tr><td><strong>Threshold</strong></td><td>Fails if any widget drifts >0.5% from golden. Intentional visual changes require updating goldens with <code>--update-goldens</code>.</td></tr>
-      <tr><td><strong>Industry ref</strong></td><td>Airbnb (Percy), Shopify (Polaris), Google (Flutter Gallery). Chromatic for web, <code>matchesGoldenFile</code> for Flutter.</td></tr>
-      <tr><td><strong>Time</strong></td><td>~1-2 minutes (part of <code>flutter test</code>)</td></tr>
+      <tr><td><strong>Tool</strong></td><td>Flutter's <code>matchesGoldenFile()</code>. Multiple sizes: 320px (SE), 428px (Pro Max).</td></tr>
+      <tr><td><strong>Threshold</strong></td><td>Fails if drift >0.5%. Update with <code>--update-goldens</code>.</td></tr>
+      <tr><td><strong>Time</strong></td><td>~1-2 minutes</td></tr>
     </table>
   </div>
 
   <!-- G7 -->
   <div class="detail-section" id="detail-g7">
     <h2><span class="dot" style="background:var(--g7)"></span> Gate 7: Accessibility Audit <span class="tag tag-ui">UI-SPECIFIC</span> <span class="tag tag-warn">WARNING</span></h2>
-    <p>Every interactive element must have semantic labels, contrast ratios must pass WCAG, tap targets must be ≥48px. Warnings now, blocker by v1.0 launch.</p>
+    <p>Semantic labels, contrast ratios, tap targets &#8805;48px. Warnings now, blocker by v1.0.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
-      <tr><td><strong>Tool</strong></td><td>Flutter's built-in guidelines: <code>meetsGuideline(androidTapTargetGuideline)</code> + <code>meetsGuideline(textContrastGuideline)</code></td></tr>
-      <tr><td><strong>Checks</strong></td><td>Missing <code>Semantics</code> labels on buttons/inputs, contrast ratio < 4.5:1, tap targets < 48x48dp, missing <code>excludeSemantics</code> on decorative elements.</td></tr>
-      <tr><td><strong>Compliance</strong></td><td>WCAG 2.1 AA. RBI/SEBI may require this for fintech apps. Google Play Store accessibility requirements.</td></tr>
-      <tr><td><strong>Threshold</strong></td><td>Warnings, not blockers (for now). Report attached to PR. Goal: zero warnings by v1.0.</td></tr>
-      <tr><td><strong>Time</strong></td><td>~30 seconds (part of widget test suite)</td></tr>
+      <tr><td><strong>Tool</strong></td><td>Flutter guidelines: <code>androidTapTargetGuideline</code> + <code>textContrastGuideline</code></td></tr>
+      <tr><td><strong>Compliance</strong></td><td>WCAG 2.1 AA</td></tr>
+      <tr><td><strong>Time</strong></td><td>~30 seconds</td></tr>
     </table>
   </div>
 
   <!-- G8 -->
   <div class="detail-section" id="detail-g8">
     <h2><span class="dot" style="background:var(--g8)"></span> Gate 8: Performance Benchmarks <span class="tag tag-ui">UI-SPECIFIC</span> <span class="tag tag-warn">REPORT</span></h2>
-    <p>Track app size, frame rate, startup time, memory. Regressions flagged. Trading apps must hit <100ms tick-to-render for live prices.</p>
+    <p>APK size, frame rate, startup time, memory. Trading apps must hit &lt;100ms tick-to-render.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
-      <tr><td><strong>Tool</strong></td><td><code>flutter test --profile</code> + integration test driver with <code>Timeline</code> tracing. App size: <code>flutter build apk --analyze-size</code>.</td></tr>
-      <tr><td><strong>Metrics</strong></td><td>APK size delta, cold start time, scroll jank (frames >16ms), memory peak during trading screen, widget rebuild count.</td></tr>
-      <tr><td><strong>Thresholds</strong></td><td>APK +500KB = warning, +2MB = blocker. Startup >3s = warning. Jank >5% = blocker. Tick-to-render >100ms = blocker for trading screens.</td></tr>
-      <tr><td><strong>Industry ref</strong></td><td>Google Flutter perf best practices, Shopify app size budgets.</td></tr>
-      <tr><td><strong>Time</strong></td><td>~5 minutes (nightly, alongside E2E)</td></tr>
+      <tr><td><strong>Thresholds</strong></td><td>APK +500KB = warning, +2MB = blocker. Startup >3s = warning. Jank >5% = blocker.</td></tr>
+      <tr><td><strong>Time</strong></td><td>~5 minutes (nightly)</td></tr>
     </table>
   </div>
 
   <!-- G9 -->
   <div class="detail-section" id="detail-g9">
     <h2><span class="dot" style="background:var(--g9)"></span> Gate 9: E2E on Real Device <span class="tag tag-block">BLOCKER</span></h2>
-    <p>Full product flows on real Samsung Z Flip6. Build → install → run all YAML smoke flows → screenshot at each step → compare against PRO web ground truth. The final gate.</p>
+    <p>Full flows on Samsung Z Flip6. Build → install → run 49 YAML smoke flows → screenshot → compare vs PRO web ground truth.</p>
     <table class="detail-table">
       <tr><th style="width:140px">Aspect</th><th>Details</th></tr>
-      <tr><td><strong>Process</strong></td><td>Build AAR → APK → install on device → authenticate (PIN 1234) → run 49 YAML flows converted to Patrol tests.</td></tr>
-      <tr><td><strong>Verification</strong></td><td>Screenshot captured at each assertion point. Pixel-compared against PRO web ground truth baselines.</td></tr>
-      <tr><td><strong>Scope</strong></td><td>Futures trading, positions, orders, market, options — all critical user paths.</td></tr>
-      <tr><td><strong>Industry ref</strong></td><td>Equivalent to running on real smart meters in embedded. Same principle: emulators miss hardware quirks, real devices catch them.</td></tr>
+      <tr><td><strong>Process</strong></td><td>Build AAR → APK → install → authenticate (PIN) → 49 Patrol flows → pixel diff</td></tr>
       <tr><td><strong>When</strong></td><td>Nightly. Critical PRs can trigger manually.</td></tr>
-      <tr><td><strong>Time</strong></td><td>~15-20 minutes (build + install + 49 flows)</td></tr>
+      <tr><td><strong>Time</strong></td><td>~15-20 minutes</td></tr>
     </table>
   </div>
 
@@ -438,17 +510,18 @@
         <div style="font-size:11px;color:var(--text-dim)">Nightly (G8-G9)</div>
       </div>
       <div style="text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#93c5fd">90%+</div>
-        <div style="font-size:11px;color:var(--text-dim)">Target coverage</div>
+        <div style="font-size:28px;font-weight:700;color:#93c5fd">356</div>
+        <div style="font-size:11px;color:var(--text-dim)">Tests (5 screens)</div>
       </div>
       <div style="text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#c4b5fd">1:1</div>
-        <div style="font-size:11px;color:var(--text-dim)">Zephyr traceability</div>
+        <div style="font-size:28px;font-weight:700;color:#c4b5fd">5</div>
+        <div style="font-size:11px;color:var(--text-dim)">Test Layers (L1-L5)</div>
       </div>
     </div>
     <p style="text-align:center;margin-top:16px;font-size:13px;color:var(--text-dim)">
-      <strong style="color:var(--text)">Gates 1-3</strong> (universal) from industry-standard C++/embedded practice.
-      <strong style="color:#c4b5fd">Gates 6-8</strong> (UI-specific) extend the pyramid for mobile: visual parity, accessibility, performance.
+      <strong style="color:var(--text)">Gates 1-3</strong> (universal) from industry-standard practice.
+      <strong style="color:#fcd34d">Gate 4</strong> powered by <code>/generate-tests</code> AI skill — 208 tests auto-generated in one session.
+      <strong style="color:#c4b5fd">Gates 6-8</strong> extend the pyramid for mobile.
       All test expectations derived from <strong style="color:#6ee7b7">PRO web</strong>, never from Flutter code.
     </p>
   </div>
@@ -456,11 +529,10 @@
 </div>
 
 <div class="footer">
-  CoinSwitch PRO &middot; Flutter Migration QA Strategy &middot; April 2026
+  CoinSwitch PRO &middot; Flutter Migration QA Strategy &middot; April 2026 &middot; Updated: April 22
 </div>
 
 <script>
-// Highlight active section when pyramid layer is clicked
 document.querySelectorAll('.pyramid-row').forEach(row => {
   row.addEventListener('click', () => {
     document.querySelectorAll('.detail-section').forEach(s => s.classList.remove('active'));
@@ -471,14 +543,12 @@ document.querySelectorAll('.pyramid-row').forEach(row => {
   });
 });
 
-// Also activate on hash change
 window.addEventListener('hashchange', () => {
   document.querySelectorAll('.detail-section').forEach(s => s.classList.remove('active'));
   const el = document.querySelector(window.location.hash);
   if (el) el.classList.add('active');
 });
 
-// Activate if page loads with hash
 if (window.location.hash) {
   const el = document.querySelector(window.location.hash);
   if (el) el.classList.add('active');
