@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoinSwitch Flutter Migration — Full SDLC Workflow</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --surface3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #484f58;
+    --green: #3fb950;
+    --green-bg: rgba(63,185,80,0.1);
+    --orange: #d29922;
+    --orange-bg: rgba(210,153,34,0.1);
+    --red: #f85149;
+    --red-bg: rgba(248,81,73,0.1);
+    --blue: #58a6ff;
+    --blue-bg: rgba(88,166,255,0.1);
+    --purple: #bc8cff;
+    --purple-bg: rgba(188,140,255,0.1);
+    --yellow: #e3b341;
+    --yellow-bg: rgba(227,179,65,0.1);
+    --cyan: #39d2c0;
+    --cyan-bg: rgba(57,210,192,0.1);
+    --pink: #f778ba;
+    --pink-bg: rgba(247,120,186,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  /* Header */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+  .header-left h1 { font-size: 20px; font-weight: 600; }
+  .header-left p { color: var(--text-muted); font-size: 13px; margin-top: 2px; }
+  .header-right { display: flex; gap: 12px; align-items: center; }
+  .stat-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+  .stat-pill .num { font-weight: 700; }
+
+  /* Layout */
+  .layout { display: flex; height: calc(100vh - 68px); }
+
+  /* Sidebar */
+  .sidebar { width: 240px; min-width: 240px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px 0; }
+  .sidebar-section { padding: 0 12px; margin-bottom: 16px; }
+  .sidebar-section h3 { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); margin-bottom: 6px; padding: 0 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; border-radius: 6px; margin: 1px 0; font-size: 13px; transition: all 0.15s; color: var(--text-muted); }
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--blue-bg); color: var(--blue); font-weight: 500; }
+  .sidebar-item .icon { font-size: 15px; width: 20px; text-align: center; }
+
+  /* Main content */
+  .main { flex: 1; overflow-y: auto; padding: 32px 40px; max-width: 1100px; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-title { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+  /* Phase overview cards */
+  .phase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .phase-card:hover { border-color: var(--text-dim); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .phase-card .phase-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; }
+  .phase-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .phase-card p { font-size: 13px; color: var(--text-muted); }
+  .phase-card .phase-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .phase-a .phase-bar { background: var(--cyan); }
+  .phase-a .phase-label { color: var(--cyan); }
+  .phase-b .phase-bar { background: var(--blue); }
+  .phase-b .phase-label { color: var(--blue); }
+  .phase-c .phase-bar { background: var(--green); }
+  .phase-c .phase-label { color: var(--green); }
+
+  /* Flow diagram */
+  .flow { margin: 24px 0; }
+  .flow-step { display: flex; gap: 16px; margin-bottom: 0; position: relative; }
+  .flow-step:last-child .flow-line { display: none; }
+  .flow-dot-col { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+  .flow-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; z-index: 1; }
+  .flow-line { width: 2px; flex: 1; min-height: 20px; }
+  .flow-content { flex: 1; padding-bottom: 24px; }
+  .flow-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .flow-content p { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
+  .flow-content .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; margin-right: 4px; }
+
+  /* Gate detail cards */
+  .gate-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; }
+  .gate-card:hover { border-color: var(--text-dim); }
+  .gate-card.expanded { border-color: var(--blue); }
+  .gate-header { display: flex; justify-content: space-between; align-items: center; }
+  .gate-header-left { display: flex; align-items: center; gap: 12px; }
+  .gate-num { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; }
+  .gate-title { font-size: 15px; font-weight: 600; }
+  .gate-type { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
+  .gate-type.read { background: var(--cyan-bg); color: var(--cyan); }
+  .gate-type.write { background: var(--orange-bg); color: var(--orange); }
+  .gate-type.code { background: var(--purple-bg); color: var(--purple); }
+  .gate-type.verify { background: var(--green-bg); color: var(--green); }
+  .gate-type.score { background: var(--yellow-bg); color: var(--yellow); }
+  .gate-body { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .gate-card.expanded .gate-body { display: block; }
+  .gate-body ul { list-style: none; padding: 0; }
+  .gate-body li { font-size: 13px; color: var(--text-muted); padding: 4px 0; padding-left: 20px; position: relative; }
+  .gate-body li::before { content: ''; position: absolute; left: 4px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+  .gate-artifact { margin-top: 12px; background: var(--surface2); border-radius: 6px; padding: 10px 14px; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .gate-artifact .label { color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .gate-artifact code { color: var(--green); }
+
+  /* CI pipeline */
+  .pipeline { display: flex; gap: 4px; align-items: stretch; margin: 24px 0; overflow-x: auto; padding-bottom: 8px; }
+  .pipe-stage { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; min-width: 130px; position: relative; flex-shrink: 0; }
+  .pipe-stage h5 { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .pipe-stage p { font-size: 11px; color: var(--text-muted); }
+  .pipe-arrow { display: flex; align-items: center; color: var(--text-dim); font-size: 20px; flex-shrink: 0; }
+  .pipe-stage .pipe-bar { position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 8px 8px 0 0; }
+
+  /* Branching diagram */
+  .branch-diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; margin: 20px 0; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; line-height: 2; overflow-x: auto; }
+  .branch-line { white-space: nowrap; }
+  .br-main { color: var(--green); }
+  .br-develop { color: var(--blue); }
+  .br-feature { color: var(--purple); }
+  .br-worktree { color: var(--orange); }
+  .br-dim { color: var(--text-dim); }
+  .br-text { color: var(--text-muted); font-family: -apple-system, sans-serif; font-size: 12px; }
+
+  /* Parity score table */
+  .score-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0; }
+  .score-table th { background: var(--surface2); padding: 10px 14px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); text-align: left; font-weight: 600; }
+  .score-table th:first-child { border-radius: 8px 0 0 0; }
+  .score-table th:last-child { border-radius: 0 8px 0 0; }
+  .score-table td { padding: 10px 14px; font-size: 13px; border-top: 1px solid var(--border); }
+  .score-table tr:hover td { background: var(--surface); }
+  .score-pass { color: var(--green); font-weight: 600; }
+  .score-warn { color: var(--orange); font-weight: 600; }
+  .score-fail { color: var(--red); font-weight: 600; }
+
+  /* Command blocks */
+  .cmd-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin: 12px 0; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.8; overflow-x: auto; }
+  .cmd-block .prompt { color: var(--green); }
+  .cmd-block .comment { color: var(--text-dim); }
+  .cmd-block .flag { color: var(--orange); }
+
+  /* Info boxes */
+  .info-box { border-radius: 8px; padding: 14px 16px; margin: 12px 0; font-size: 13px; display: flex; gap: 10px; }
+  .info-box .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .info-box.warning { background: var(--orange-bg); border: 1px solid rgba(210,153,34,0.3); }
+  .info-box.danger { background: var(--red-bg); border: 1px solid rgba(248,81,73,0.3); }
+  .info-box.tip { background: var(--green-bg); border: 1px solid rgba(63,185,80,0.3); }
+  .info-box.note { background: var(--blue-bg); border: 1px solid rgba(88,166,255,0.3); }
+
+  /* Section headers */
+  .section-header { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .section-header .badge { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-weight: 500; color: var(--text-muted); }
+
+  /* Swimlane */
+  .swimlane { display: grid; grid-template-columns: 120px 1fr; gap: 0; margin: 20px 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .swim-role { background: var(--surface2); padding: 14px; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .swim-role:last-of-type { border-bottom: none; }
+  .swim-actions { padding: 14px; border-bottom: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .swim-actions:last-of-type { border-bottom: none; }
+  .swim-chip { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+  .swim-arrow { color: var(--text-dim); font-size: 14px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .phase-grid { grid-template-columns: 1fr; }
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 100%; max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>CoinSwitch Flutter Migration — SDLC Workflow</h1>
+    <p>WebView-to-Flutter migration pipeline &middot; Architect-in-the-Loop v2</p>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill"><span style="color:var(--green)">&#9679;</span> <span class="num">26</span> done</div>
+    <div class="stat-pill"><span style="color:var(--orange)">&#9679;</span> <span class="num">1</span> in progress</div>
+    <div class="stat-pill"><span style="color:var(--text-dim)">&#9679;</span> <span class="num">8</span> pending</div>
+    <div class="stat-pill"><span style="color:var(--blue)">&#9679;</span> <span class="num">7</span> gates</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h3>Overview</h3>
+      <div class="sidebar-item active" onclick="showPage('overview')"><span class="icon">&#9632;</span> Big Picture</div>
+      <div class="sidebar-item" onclick="showPage('roles')"><span class="icon">&#9824;</span> Roles &amp; Agents</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Phase A: Ground Truth</h3>
+      <div class="sidebar-item" onclick="showPage('crawl')"><span class="icon">&#128269;</span> Playwright Crawl</div>
+      <div class="sidebar-item" onclick="showPage('artifacts')"><span class="icon">&#128193;</span> Artifacts</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Phase B: 7-Gate Migration</h3>
+      <div class="sidebar-item" onclick="showPage('gate-overview')"><span class="icon">&#128295;</span> Gate Overview</div>
+      <div class="sidebar-item" onclick="showPage('gate-detail')"><span class="icon">&#128209;</span> Gate Details</div>
+      <div class="sidebar-item" onclick="showPage('build-loop')"><span class="icon">&#128260;</span> Build &amp; Verify Loop</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Phase C: Testing &amp; CI</h3>
+      <div class="sidebar-item" onclick="showPage('testing')"><span class="icon">&#9989;</span> Test Pyramid</div>
+      <div class="sidebar-item" onclick="showPage('ci')"><span class="icon">&#128640;</span> CI Pipeline</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Push &amp; Ship</h3>
+      <div class="sidebar-item" onclick="showPage('branching')"><span class="icon">&#128268;</span> Git Branching</div>
+      <div class="sidebar-item" onclick="showPage('pr')"><span class="icon">&#128230;</span> PR &amp; Review</div>
+      <div class="sidebar-item" onclick="showPage('deploy')"><span class="icon">&#128752;</span> Deploy &amp; OTA</div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Reference</h3>
+      <div class="sidebar-item" onclick="showPage('parity')"><span class="icon">&#127919;</span> Parity Scoring</div>
+      <div class="sidebar-item" onclick="showPage('commands')"><span class="icon">&#9000;</span> Commands</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ========== OVERVIEW ========== -->
+    <div class="page active" id="page-overview">
+      <div class="page-title">Big Picture: How a Migration Session Works</div>
+      <div class="page-subtitle">From picking a screen to shipping OTA — every step a developer (or Claude agent) follows.</div>
+
+      <div class="phase-grid">
+        <div class="phase-card phase-a" onclick="showPage('crawl')">
+          <div class="phase-bar"></div>
+          <div class="phase-label">Phase A</div>
+          <h3>Ground Truth</h3>
+          <p>Playwright crawls every screen in 4 user states. Captures HAR, screenshots, DOM, WebSocket frames. Generates SCREEN_SPEC.md.</p>
+        </div>
+        <div class="phase-card phase-b" onclick="showPage('gate-overview')">
+          <div class="phase-bar"></div>
+          <div class="phase-label">Phase B</div>
+          <h3>7-Gate Deep Migration</h3>
+          <p>Each screen passes 7 sequential gates: Observe, Data Map, Design, Build, Analyze, Re-Verify, Score. Evidence required to advance.</p>
+        </div>
+        <div class="phase-card phase-c" onclick="showPage('testing')">
+          <div class="phase-bar"></div>
+          <div class="phase-label">Phase C</div>
+          <h3>Continuous Verification</h3>
+          <p>Regression pool, L1-L5 tests, CI pipeline, device testing, Shorebird OTA patches. Every done screen stays verified.</p>
+        </div>
+      </div>
+
+      <div class="section-header">End-to-End Flow <span class="badge">per screen</span></div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--cyan)">1</div>
+            <div class="flow-line" style="background:var(--cyan)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Read state.yaml</h4>
+            <p>Single source of truth. Find the first screen with an incomplete gate. No asking — the file tells you what to do next.</p>
+            <span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">AUTO-ROUTED</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--cyan)">2</div>
+            <div class="flow-line" style="background:var(--cyan)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Playwright Crawl (Phase A)</h4>
+            <p>Crawl target screen in 4 user states: Guest, New User, Active Trader, Error. Capture screenshots, HAR, WebSocket frames, DOM snapshots.</p>
+            <span class="tag" style="background:var(--cyan-bg);color:var(--cyan)">CRAWLER AGENT</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--blue)">3</div>
+            <div class="flow-line" style="background:var(--blue)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 1: OBSERVE</h4>
+            <p>Read SCREEN_SPEC, HAR endpoints, socket subscriptions, screenshots. Understand, don't code.</p>
+            <span class="tag" style="background:var(--blue-bg);color:var(--blue)">READ-ONLY</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--blue)">4</div>
+            <div class="flow-line" style="background:var(--blue)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 2: TRACE DATA</h4>
+            <p>Follow chain: HAR endpoint &#8594; web hook &#8594; GraphQL resolver &#8594; REST &#8594; response schema. Document all states.</p>
+            <span class="tag" style="background:var(--blue-bg);color:var(--blue)">READ-ONLY</span>
+            <span class="tag" style="background:var(--purple-bg);color:var(--purple)">OUTPUT: DATA_MAP.md</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--blue)">5</div>
+            <div class="flow-line" style="background:var(--blue)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 3: DESIGN</h4>
+            <p>Define providers, state model, UI per state. Compare against ADRs. If existing code: note what needs refactoring.</p>
+            <span class="tag" style="background:var(--purple-bg);color:var(--purple)">OUTPUT: DESIGN.md</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--blue)">6</div>
+            <div class="flow-line" style="background:var(--blue)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 3.5: SECTION INVENTORY</h4>
+            <p>List EVERY section the web renders. Cross-reference against existing Flutter code. Mark YES/NO per section. Blocks Gate 4.</p>
+            <span class="tag" style="background:var(--orange-bg);color:var(--orange)">HARD GATE</span>
+            <span class="tag" style="background:var(--purple-bg);color:var(--purple)">OUTPUT: SECTION_INVENTORY.md</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--purple)">7</div>
+            <div class="flow-line" style="background:var(--purple)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 4: BUILD (Section-by-Section Loop)</h4>
+            <p>Build ONE section &#8594; Deploy to device &#8594; Screenshot &#8594; Sub-agent verifies &#8594; PASS? Lock, next section. FAIL? Fix, retry (max 5).</p>
+            <span class="tag" style="background:var(--purple-bg);color:var(--purple)">CODE</span>
+            <span class="tag" style="background:var(--red-bg);color:var(--red)">DEVICE REQUIRED</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--green)">8</div>
+            <div class="flow-line" style="background:var(--green)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 5: ANALYZE</h4>
+            <p><code>flutter analyze</code> = 0 issues. <code>flutter test</code> = all pass. Min 4 state-specific tests (loading, empty, populated, error).</p>
+            <span class="tag" style="background:var(--green-bg);color:var(--green)">VERIFY</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--green)">9</div>
+            <div class="flow-line" style="background:var(--green)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 6: RE-VERIFY</h4>
+            <p>Network diff (Flutter HAR vs Web HAR), visual comparison, state handling, interaction fidelity, analytics, performance.</p>
+            <span class="tag" style="background:var(--green-bg);color:var(--green)">VERIFY</span>
+            <span class="tag" style="background:var(--purple-bg);color:var(--purple)">OUTPUT: PARITY_REPORT.md</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--yellow)">10</div>
+            <div class="flow-line" style="background:var(--yellow)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Gate 7: SCORE &amp; VERDICT</h4>
+            <p>G1-G6 all meet thresholds? Composite &#8805; 95%? PASS &#8594; done_done + regression pool. FAIL &#8594; back to Gate 4 (max 3 round-trips).</p>
+            <span class="tag" style="background:var(--yellow-bg);color:var(--yellow)">DECISION</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--green)">11</div>
+            <div class="flow-line" style="background:var(--green)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Tests: L1-L5 Pyramid</h4>
+            <p>L1: Unit (pure logic), L2: Provider (state), L3: Widget (render), L4: Integration (multi-widget), L5: Golden (pixel). Auto-generated via <code>/generate-tests</code>.</p>
+            <span class="tag" style="background:var(--green-bg);color:var(--green)">148+ TESTS</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--orange)">12</div>
+            <div class="flow-line" style="background:var(--orange)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Commit, PR, Review</h4>
+            <p>Atomic commits per gate. PR to <code>flutter-migration-develop</code>. Code review by human + code-reviewer agent. Merge only after CI green.</p>
+            <span class="tag" style="background:var(--orange-bg);color:var(--orange)">HUMAN-IN-LOOP</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--pink)">13</div>
+          </div>
+          <div class="flow-content">
+            <h4>Deploy: Shorebird OTA</h4>
+            <p>Dart-only changes ship via Shorebird patch (no app store review). Native changes need full APK release.</p>
+            <span class="tag" style="background:var(--pink-bg);color:var(--pink)">SHIP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ROLES ========== -->
+    <div class="page" id="page-roles">
+      <div class="page-title">Roles &amp; Agents</div>
+      <div class="page-subtitle">Who does what in the migration pipeline.</div>
+
+      <div class="swimlane">
+        <div class="swim-role" style="color:var(--cyan)">&#128269; Crawler</div>
+        <div class="swim-actions">
+          <div class="swim-chip" style="background:var(--cyan-bg);color:var(--cyan)">Playwright crawl</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--cyan-bg);color:var(--cyan)">Capture HAR/screenshots</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--cyan-bg);color:var(--cyan)">Generate SCREEN_SPEC.md</div>
+        </div>
+
+        <div class="swim-role" style="color:var(--blue)">&#128209; Data Map</div>
+        <div class="swim-actions">
+          <div class="swim-chip" style="background:var(--blue-bg);color:var(--blue)">Trace API chains</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--blue-bg);color:var(--blue)">Read web source + GraphQL</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--blue-bg);color:var(--blue)">Write DATA_MAP.md</div>
+        </div>
+
+        <div class="swim-role" style="color:var(--purple)">&#128295; Builder</div>
+        <div class="swim-actions">
+          <div class="swim-chip" style="background:var(--purple-bg);color:var(--purple)">Read Gates 1-3</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--purple-bg);color:var(--purple)">Write Flutter code</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--purple-bg);color:var(--purple)">Build &amp; deploy</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--purple-bg);color:var(--purple)">Screenshot</div>
+        </div>
+
+        <div class="swim-role" style="color:var(--green)">&#9989; Verifier</div>
+        <div class="swim-actions">
+          <div class="swim-chip" style="background:var(--green-bg);color:var(--green)">Compare screenshots</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--green-bg);color:var(--green)">Score G1-G6</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--green-bg);color:var(--green)">PASS / FAIL verdict</div>
+        </div>
+
+        <div class="swim-role" style="color:var(--orange)">&#128100; Developer</div>
+        <div class="swim-actions">
+          <div class="swim-chip" style="background:var(--orange-bg);color:var(--orange)">Read state.yaml</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--orange-bg);color:var(--orange)">Kick off session</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--orange-bg);color:var(--orange)">Review blocked screens</div>
+          <span class="swim-arrow">&#8594;</span>
+          <div class="swim-chip" style="background:var(--orange-bg);color:var(--orange)">Approve PR</div>
+        </div>
+      </div>
+
+      <div class="info-box note">
+        <span class="icon">&#128161;</span>
+        <div><strong>Builder cannot self-verify.</strong> Only the Verifier sub-agent's verdict counts. This prevents the "self-assessed 95% parity" problem from Workflow v1.</div>
+      </div>
+
+      <div class="section-header">Parallelization Rules</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:var(--green-bg);border:1px solid rgba(63,185,80,0.2);border-radius:8px;padding:16px">
+          <h4 style="color:var(--green);font-size:13px;margin-bottom:8px">Safe to Parallelize</h4>
+          <ul style="list-style:none;font-size:13px;color:var(--text-muted)">
+            <li style="padding:3px 0">&#10003; Gate 1 (observe) across screens</li>
+            <li style="padding:3px 0">&#10003; Gate 2 (data map) across screens</li>
+            <li style="padding:3px 0">&#10003; Playwright crawls (separate sessions)</li>
+            <li style="padding:3px 0">&#10003; Regression lightweight checks</li>
+          </ul>
+        </div>
+        <div style="background:var(--red-bg);border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:16px">
+          <h4 style="color:var(--red);font-size:13px;margin-bottom:8px">Must Be Sequential</h4>
+          <ul style="list-style:none;font-size:13px;color:var(--text-muted)">
+            <li style="padding:3px 0">&#10007; Gates within a single screen</li>
+            <li style="padding:3px 0">&#10007; Gate 4 for screens sharing providers</li>
+            <li style="padding:3px 0">&#10007; ADR updates</li>
+            <li style="padding:3px 0">&#10007; Shared infrastructure changes</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== CRAWL ========== -->
+    <div class="page" id="page-crawl">
+      <div class="page-title">Phase A: Playwright Crawl</div>
+      <div class="page-subtitle">Capture ground truth from the live web app before writing any Flutter code.</div>
+
+      <div class="section-header">4 User States</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#128683;</div>
+          <div style="font-size:13px;font-weight:600">Guest</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">No cookies, public view, redirects</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#128100;</div>
+          <div style="font-size:13px;font-weight:600">New User</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">KYC pending, empty states, onboarding</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#128200;</div>
+          <div style="font-size:13px;font-weight:600">Active Trader</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Positions, real data, live sockets</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">&#9888;</div>
+          <div style="font-size:13px;font-weight:600">Error/Edge</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Network intercept, retry UI, fallback</div>
+        </div>
+      </div>
+
+      <div class="section-header">Crawl Commands</div>
+      <div class="cmd-block">
+        <span class="comment"># Navigate to the test platform</span><br>
+        <span class="prompt">$</span> cd /Users/Apurv.Singh/ai-living-test-platform<br><br>
+        <span class="comment"># Run crawl for a specific screen flow</span><br>
+        <span class="prompt">$</span> npm run crawl <span class="flag">--flow=</span>{flow_id}<br><br>
+        <span class="comment"># Run parity check against existing Flutter</span><br>
+        <span class="prompt">$</span> npm run parity:check <span class="flag">--scenario=</span>{scenario_id}
+      </div>
+
+      <div class="section-header">Artifacts Captured Per State</div>
+      <div class="cmd-block">
+        .migration/ground-truth/{screen_name}/<br>
+        &nbsp;&nbsp;&#9500;&#9472;&#9472; guest/<br>
+        &nbsp;&nbsp;&#9474;&nbsp;&nbsp; &#9500;&#9472;&#9472; <span style="color:var(--green)">screenshot.png</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Full-page Playwright screenshot</span><br>
+        &nbsp;&nbsp;&#9474;&nbsp;&nbsp; &#9500;&#9472;&#9472; <span style="color:var(--green)">network.har</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># HTTP Archive (all requests)</span><br>
+        &nbsp;&nbsp;&#9474;&nbsp;&nbsp; &#9500;&#9472;&#9472; <span style="color:var(--green)">websocket-frames.json</span><span class="comment"># Socket.io / WS frames</span><br>
+        &nbsp;&nbsp;&#9474;&nbsp;&nbsp; &#9500;&#9472;&#9472; <span style="color:var(--green)">dom-snapshot.html</span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Full DOM including dynamic content</span><br>
+        &nbsp;&nbsp;&#9474;&nbsp;&nbsp; &#9492;&#9472;&#9472; <span style="color:var(--green)">state-shape.json</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Client state (Remix context, Jotai)</span><br>
+        &nbsp;&nbsp;&#9500;&#9472;&#9472; new_user/ ...<br>
+        &nbsp;&nbsp;&#9500;&#9472;&#9472; active_trader/ ...<br>
+        &nbsp;&nbsp;&#9500;&#9472;&#9472; error/ ...<br>
+        &nbsp;&nbsp;&#9492;&#9472;&#9472; <span style="color:var(--yellow)">SCREEN_SPEC.md</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Generated from all artifacts</span>
+      </div>
+
+      <div class="info-box warning">
+        <span class="icon">&#9888;</span>
+        <div><strong>Always ask for auth tokens before crawling.</strong> Never assume cached tokens are valid. Auth states must be captured with real credentials.</div>
+      </div>
+    </div>
+
+    <!-- ========== ARTIFACTS ========== -->
+    <div class="page" id="page-artifacts">
+      <div class="page-title">Ground Truth Artifacts</div>
+      <div class="page-subtitle">What gets generated and when it's consumed.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--cyan-bg);color:var(--cyan)">S</div><div class="gate-title">SCREEN_SPEC.md</div></div>
+            <span class="gate-type read">Gate 1+</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">API endpoints table, socket subscriptions, UI states per user state, navigation flows, observed headers.</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--blue-bg);color:var(--blue)">D</div><div class="gate-title">DATA_MAP.md</div></div>
+            <span class="gate-type write">Gate 2</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Full data chain: HAR endpoint &#8594; web hook &#8594; GraphQL &#8594; REST &#8594; response schema. All possible states documented.</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--purple-bg);color:var(--purple)">G</div><div class="gate-title">DESIGN.md</div></div>
+            <span class="gate-type write">Gate 3</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Flutter state model: providers, states, UI per state. ADR cross-reference. Refactoring notes for existing code.</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--orange-bg);color:var(--orange)">I</div><div class="gate-title">SECTION_INVENTORY.md</div></div>
+            <span class="gate-type write">Gate 3.5</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Every web section in render order. Container CSS, decorative layers, sub-component count, click handlers, data source, conditional rendering.</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--green-bg);color:var(--green)">P</div><div class="gate-title">PARITY_REPORT.md</div></div>
+            <span class="gate-type verify">Gate 6</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">G1-G6 scores. Network diff, visual comparison, state handling verification, interaction fidelity, analytics events, performance benchmarks.</div>
+        </div>
+        <div class="gate-card">
+          <div class="gate-header">
+            <div class="gate-header-left"><div class="gate-num" style="background:var(--yellow-bg);color:var(--yellow)">B</div><div class="gate-title">BUGS.md</div></div>
+            <span class="gate-type score">Ongoing</span>
+          </div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-muted)">Tracked at .migration/ground-truth/BUGS.md. Functional (B1-B13), pixel gaps (P1-P10), structural fixes. Regressions block queue.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== GATE OVERVIEW ========== -->
+    <div class="page" id="page-gate-overview">
+      <div class="page-title">Phase B: 7-Gate Migration</div>
+      <div class="page-subtitle">Each screen passes through 7 sequential gates. Cannot skip. Evidence required.</div>
+
+      <div class="pipeline">
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--cyan)"></div><h5 style="color:var(--cyan)">G1: Observe</h5><p>Read specs, HAR, screenshots</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--cyan)"></div><h5 style="color:var(--cyan)">G2: Data Map</h5><p>Trace API chains</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--blue)"></div><h5 style="color:var(--blue)">G3: Design</h5><p>Providers, states, ADRs</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--orange)"></div><h5 style="color:var(--orange)">G3.5: Inventory</h5><p>Every section listed</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--purple)"></div><h5 style="color:var(--purple)">G4: Build</h5><p>Code + device verify</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--green)"></div><h5 style="color:var(--green)">G5: Analyze</h5><p>flutter analyze + test</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--green)"></div><h5 style="color:var(--green)">G6: Re-Verify</h5><p>6-dimension parity</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--yellow)"></div><h5 style="color:var(--yellow)">G7: Score</h5><p>&#8805;95% composite</p></div>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#128683;</span>
+        <div><strong>Max 3 round-trips (Gate 4 &#8594; 7).</strong> After 3 failures, screen is marked <code>status: blocked</code> with block_reason. Escalated to human.</div>
+      </div>
+
+      <div class="section-header">Session Rules</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px">
+          <h4 style="font-size:14px;margin-bottom:8px;color:var(--green)">Can Batch</h4>
+          <ul style="list-style:none;font-size:13px;color:var(--text-muted)">
+            <li style="padding:4px 0">Gates 1+2 for same screen (both read-only)</li>
+            <li style="padding:4px 0">Gate 1 for multiple screens</li>
+            <li style="padding:4px 0">Gate 2 for multiple screens</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px">
+          <h4 style="font-size:14px;margin-bottom:8px;color:var(--red)">One Per Session</h4>
+          <ul style="list-style:none;font-size:13px;color:var(--text-muted)">
+            <li style="padding:4px 0">Gate 4 (build) — produces code</li>
+            <li style="padding:4px 0">Gate 5 (analyze) — requires execution</li>
+            <li style="padding:4px 0">Gate 6 (re-verify) — requires device</li>
+            <li style="padding:4px 0">Gate 7 (score) — decision gate</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== GATE DETAIL ========== -->
+    <div class="page" id="page-gate-detail">
+      <div class="page-title">Gate Details</div>
+      <div class="page-subtitle">Click any gate to expand full instructions and required outputs.</div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--cyan-bg);color:var(--cyan)">1</div><div class="gate-title">OBSERVE</div></div>
+          <span class="gate-type read">Read-only</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Read ground-truth/{screen}/SCREEN_SPEC.md</li>
+            <li>Read HAR files — note every API endpoint, header, response shape</li>
+            <li>Read WebSocket frames — note subscriptions, message formats</li>
+            <li>Read screenshots across all 4 user states</li>
+            <li>If existing_code: true — note what Flutter covers vs what it misses</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>Understanding only. Update state.yaml: gates.observe = done</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--cyan-bg);color:var(--cyan)">2</div><div class="gate-title">TRACE DATA</div></div>
+          <span class="gate-type read">Read-only</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Follow chain: HAR endpoint &#8594; web hook/component &#8594; GraphQL resolver &#8594; REST &#8594; response schema</li>
+            <li>Document global store (Redux/Jotai) state shape</li>
+            <li>All possible states: loading, null, empty array, error, stale</li>
+            <li>If existing_code: true — note which endpoints Flutter calls, which headers it sends</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>ground-truth/{screen}/DATA_MAP.md</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--blue-bg);color:var(--blue)">3</div><div class="gate-title">DESIGN</div></div>
+          <span class="gate-type write">Write</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Define Flutter state model: providers, possible states, UI per state</li>
+            <li>If existing_code: compare existing providers, note refactoring needed</li>
+            <li>Check ADRs — update if new pattern discovered</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>ground-truth/{screen}/DESIGN.md + ADR update if needed</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--orange-bg);color:var(--orange)">3.5</div><div class="gate-title">SECTION INVENTORY</div></div>
+          <span class="gate-type write">Hard Gate</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Read the web source component for this screen</li>
+            <li>List EVERY section in render order: container CSS, decorative layers, sub-component count, click handlers, data source, conditional rendering</li>
+            <li>Cross-reference against existing Flutter code — mark YES/NO for each section</li>
+            <li><strong>This gate BLOCKS Gate 4</strong> — cannot write code without it</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>ground-truth/{screen}/SECTION_INVENTORY.md</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--purple-bg);color:var(--purple)">4</div><div class="gate-title">BUILD</div></div>
+          <span class="gate-type code">Code + Device</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Build ONE section at a time from SECTION_INVENTORY.md</li>
+            <li>Extract Tailwind classes &#8594; exact Dart hex colors</li>
+            <li>Note decorative layers (gradients, glows, overlays)</li>
+            <li>Note ALL click handlers and destinations</li>
+            <li>Write Flutter code &#8594; flutter analyze &#8594; deploy &#8594; screenshot</li>
+            <li>Verifier sub-agent compares web vs Flutter screenshot</li>
+            <li>PASS (&#8805;95%) &#8594; lock section. FAIL &#8594; fix, retry (max 5)</li>
+            <li>After all sections locked: full-screen verify + write tests (min 4 state tests)</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>Flutter source files + .migration/verify/{screen}/flutter_iter_N.png</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--green-bg);color:var(--green)">5</div><div class="gate-title">ANALYZE</div></div>
+          <span class="gate-type verify">Verify</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li><code>flutter analyze</code> — must be 0 issues</li>
+            <li><code>flutter test</code> — all pass</li>
+            <li>Must have 4+ state-specific tests: loading, empty, populated, error</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>Test results logged in state.yaml evidence</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--green-bg);color:var(--green)">6</div><div class="gate-title">RE-VERIFY</div></div>
+          <span class="gate-type verify">6-Dimension</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li><strong>6a Network:</strong> Diff Flutter HAR vs web HAR — same endpoints, headers, payloads</li>
+            <li><strong>6b Visual:</strong> Screenshot comparison (golden files or device screencap)</li>
+            <li><strong>6c State:</strong> All 4 user states tested (from Gate 5)</li>
+            <li><strong>6d Interaction:</strong> Install APK, walk user flows, verify nav/forms/realtime</li>
+            <li><strong>6e Analytics:</strong> Verify events from SCREEN_SPEC called in Flutter code</li>
+            <li><strong>6f Performance:</strong> Frame rendering, screen transition latency, 60fps scroll</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>ground-truth/{screen}/PARITY_REPORT.md with G1-G6 scores</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="gate-card" onclick="this.classList.toggle('expanded')">
+        <div class="gate-header">
+          <div class="gate-header-left"><div class="gate-num" style="background:var(--yellow-bg);color:var(--yellow)">7</div><div class="gate-title">SCORE &amp; VERDICT</div></div>
+          <span class="gate-type score">Decision</span>
+        </div>
+        <div class="gate-body">
+          <ul>
+            <li>Check G1-G6 against thresholds: G1-G4 &#8805; 95%, G5 &#8805; 90%, G6 &#8805; 80%</li>
+            <li>Composite must be &#8805; 95% (weighted: G1:20% G2:15% G3:25% G4:20% G5:10% G6:10%)</li>
+            <li><strong>PASS:</strong> status: done_done, add to regression_pool</li>
+            <li><strong>FAIL:</strong> log gaps, gates.build = not_started (back to Gate 4), increment attempts</li>
+            <li><strong>3 failures:</strong> status: blocked, escalate to human</li>
+            <li>Run lightweight regression on all done_done screens</li>
+          </ul>
+          <div class="gate-artifact">
+            <div class="label">Output</div>
+            <code>state.yaml updated + PROGRESS.md regenerated</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== BUILD LOOP ========== -->
+    <div class="page" id="page-build-loop">
+      <div class="page-title">Gate 4: Build &amp; Verify Loop</div>
+      <div class="page-subtitle">The inner loop that runs for every section of every screen.</div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--purple)">4a</div>
+            <div class="flow-line" style="background:var(--purple)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>BUILD ONE SECTION</h4>
+            <p>Read web source for THIS section only. Extract Tailwind &#8594; Dart hex. Note decorative layers. Note ALL click handlers. Write Flutter code. <code>flutter analyze</code> = 0 issues.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--orange)">4b</div>
+            <div class="flow-line" style="background:var(--orange)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>DEPLOY &amp; SCREENSHOT</h4>
+            <div class="cmd-block">
+              <span class="prompt">$</span> ./scripts/migration_verify.sh 00163357C000049 {screen_name}<br>
+              <span class="comment"># build AAR &#8594; build APK &#8594; install &#8594; launch &#8594; screenshot</span><br>
+              <span class="comment"># Output: .migration/verify/{screen}/flutter_iter_{N}.png</span>
+            </div>
+            <div class="info-box danger" style="margin-top:8px">
+              <span class="icon">&#9888;</span>
+              <div><strong>HARD GATE:</strong> If script fails, STOP. Fix build errors before proceeding.</div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--green)">4c</div>
+            <div class="flow-line" style="background:var(--green)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>VERIFY (Sub-Agent)</h4>
+            <p>Spawn Verifier sub-agent with web screenshot + Flutter screenshot + CSS list + click handlers. Builder CANNOT self-verify.</p>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px">
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;font-size:11px">
+                <div style="font-weight:600;color:var(--green)">VISUAL</div>
+                <div style="color:var(--text-muted)">&#8805;95%</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;font-size:11px">
+                <div style="font-weight:600;color:var(--blue)">FUNCTIONAL</div>
+                <div style="color:var(--text-muted)">PASS</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;font-size:11px">
+                <div style="font-weight:600;color:var(--purple)">DATA</div>
+                <div style="color:var(--text-muted)">PASS</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;font-size:11px">
+                <div style="font-weight:600;color:var(--orange)">RESPONSIVE</div>
+                <div style="color:var(--text-muted)">100%</div>
+              </div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;font-size:11px">
+                <div style="font-weight:600;color:var(--red)">PROD-READY</div>
+                <div style="color:var(--text-muted)">PASS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--yellow)">4d</div>
+          </div>
+          <div class="flow-content">
+            <h4>ITERATE or LOCK</h4>
+            <p><strong style="color:var(--green)">ALL PASS</strong> &#8594; Lock section, move to next. <strong style="color:var(--red)">FAIL</strong> &#8594; Fix gaps, back to 4a (max 5 iterations). <strong style="color:var(--orange)">5 FAILs</strong> &#8594; Ask user for feedback.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">PROD-Readiness Checklist <span class="badge">per section before lock</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;line-height:2">
+          <div style="color:var(--text-muted)">&#9744; No Material Icons as substitutes</div>
+          <div style="color:var(--text-muted)">&#9744; No hardcoded mock data</div>
+          <div style="color:var(--text-muted)">&#9744; No empty onTap: () {}</div>
+          <div style="color:var(--text-muted)">&#9744; No TODO/FIXME in production code</div>
+          <div style="color:var(--text-muted)">&#9744; Bridge navigation works (Flutter&#8596;RN)</div>
+          <div style="color:var(--text-muted)">&#9744; Pull-to-refresh invalidates providers</div>
+          <div style="color:var(--text-muted)">&#9744; Loading: shimmer/skeleton shown</div>
+          <div style="color:var(--text-muted)">&#9744; Error: retry button, not crash</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;font-size:12px;line-height:2">
+          <div style="color:var(--text-muted)">&#9744; Empty: meaningful UI, not blank</div>
+          <div style="color:var(--text-muted)">&#9744; Indian number format (&#8377;1,23,456.78)</div>
+          <div style="color:var(--text-muted)">&#9744; Auth headers sent on API calls</div>
+          <div style="color:var(--text-muted)">&#9744; Semantic labels on interactive elements</div>
+          <div style="color:var(--text-muted)">&#9744; No hardcoded container widths</div>
+          <div style="color:var(--text-muted)">&#9744; No hardcoded container heights</div>
+          <div style="color:var(--text-muted)">&#9744; All text: maxLines + TextOverflow.ellipsis</div>
+          <div style="color:var(--text-muted)">&#9744; Min 8px padding in containers</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TESTING ========== -->
+    <div class="page" id="page-testing">
+      <div class="page-title">Test Pyramid: L1-L5</div>
+      <div class="page-subtitle">Auto-generated via /generate-tests skill. 148+ tests across Market + Home screens.</div>
+
+      <div style="display:flex;flex-direction:column;gap:4px;margin:24px 0">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:100px;font-size:12px;font-weight:600;color:var(--red);text-align:right">L5: Golden</div>
+          <div style="flex:1;background:var(--red-bg);border:1px solid rgba(248,81,73,0.2);border-radius:4px;padding:10px 16px;font-size:12px">Pixel-perfect screenshots. <code>flutter test --update-goldens</code>. Catches CSS regressions.</div>
+          <div style="width:40px;text-align:right;font-size:12px;color:var(--text-muted)">12</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:100px;font-size:12px;font-weight:600;color:var(--orange);text-align:right">L4: Widget</div>
+          <div style="flex:1;background:var(--orange-bg);border:1px solid rgba(210,153,34,0.2);border-radius:4px;padding:10px 16px;font-size:12px">Multi-widget integration. Provider overrides, tab animation timing, overflow suppression. <code>pumpWidget + pump(duration)</code></div>
+          <div style="width:40px;text-align:right;font-size:12px;color:var(--text-muted)">24</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:100px;font-size:12px;font-weight:600;color:var(--yellow);text-align:right">L3: Widget</div>
+          <div style="flex:1;background:var(--yellow-bg);border:1px solid rgba(227,179,65,0.2);border-radius:4px;padding:10px 16px;font-size:12px">Individual widget render tests. Frozen fixtures, 4-state async coverage (loading/data/empty/error).</div>
+          <div style="width:40px;text-align:right;font-size:12px;color:var(--text-muted)">12</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:100px;font-size:12px;font-weight:600;color:var(--blue);text-align:right">L2: Provider</div>
+          <div style="flex:1;background:var(--blue-bg);border:1px solid rgba(88,166,255,0.2);border-radius:4px;padding:10px 16px;font-size:12px">Provider state management tests. Mock repositories, state transitions, error handling.</div>
+          <div style="width:40px;text-align:right;font-size:12px;color:var(--text-muted)">-</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:100px;font-size:12px;font-weight:600;color:var(--green);text-align:right">L1: Unit</div>
+          <div style="flex:1;background:var(--green-bg);border:1px solid rgba(63,185,80,0.2);border-radius:4px;padding:10px 16px;font-size:12px">Pure logic: formatIndian(), PnL calculations, order validation, leverage mapping. No Flutter deps.</div>
+          <div style="width:40px;text-align:right;font-size:12px;color:var(--text-muted)">100</div>
+        </div>
+      </div>
+
+      <div class="cmd-block">
+        <span class="comment"># Generate tests for any feature directory</span><br>
+        <span class="prompt">$</span> /generate-tests lib/features/futures_trading/<br><br>
+        <span class="comment"># Run all tests</span><br>
+        <span class="prompt">$</span> cd /Users/Apurv.Singh/bitbucketRepo/cs-india-react-mobile-v2/flutter_module<br>
+        <span class="prompt">$</span> flutter test<br><br>
+        <span class="comment"># Run specific test file</span><br>
+        <span class="prompt">$</span> flutter test test/features/futures_trading/futures_market_test.dart<br><br>
+        <span class="comment"># Update golden files after intentional visual changes</span><br>
+        <span class="prompt">$</span> flutter test <span class="flag">--update-goldens</span>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10004;</span>
+        <div><strong>Mock builders pattern:</strong> <code>makePositionWithLivePnl()</code>, <code>makeAnnouncement()</code> in mock_data.dart. Frozen fixtures prevent flaky tests.</div>
+      </div>
+    </div>
+
+    <!-- ========== CI ========== -->
+    <div class="page" id="page-ci">
+      <div class="page-title">CI Pipeline</div>
+      <div class="page-subtitle">Automated gates that run on every push and PR.</div>
+
+      <div class="pipeline">
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--green)"></div><h5>flutter analyze</h5><p>0 issues</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--green)"></div><h5>flutter test</h5><p>All pass</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--blue)"></div><h5>Build AAR</h5><p>flutter build aar</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--blue)"></div><h5>Build APK</h5><p>assembleProductionDebug</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--orange)"></div><h5>Regression</h5><p>Lightweight check</p></div>
+        <div class="pipe-arrow">&#8594;</div>
+        <div class="pipe-stage"><div class="pipe-bar" style="background:var(--purple)"></div><h5>Device Test</h5><p>Install + screenshot</p></div>
+      </div>
+
+      <div class="info-box warning">
+        <span class="icon">&#9888;</span>
+        <div><strong>Always rebuild AAR before APK.</strong> <code>flutter build aar</code> must run before <code>assembleProductionDebug</code>, or Dart changes won't be in the APK. This is a known gotcha.</div>
+      </div>
+
+      <div class="section-header">Regression Triggers</div>
+      <table class="score-table">
+        <tr><th>Trigger</th><th>Action</th><th>Scope</th></tr>
+        <tr><td>New screen reaches Gate 7</td><td>Lightweight check</td><td>ALL done_done screens</td></tr>
+        <tr><td>Shared infra changed</td><td>Full parity re-run</td><td>ALL done_done screens</td></tr>
+        <tr><td>Web source changes</td><td>Re-crawl web baseline</td><td>Affected screens only</td></tr>
+        <tr><td>Manual /verify</td><td>Full G1-G6 scoring</td><td>Specified screens</td></tr>
+      </table>
+    </div>
+
+    <!-- ========== BRANCHING ========== -->
+    <div class="page" id="page-branching">
+      <div class="page-title">Git Branching Strategy</div>
+      <div class="page-subtitle">How code flows from worktree to production.</div>
+
+      <div class="branch-diagram">
+        <div class="branch-line"><span class="br-main">main</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">production</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&#9474;</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&#9492;&#9472;</span> <span class="br-develop">develop</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">integration</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> <span class="br-develop">flutter-migration-develop</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">Flutter work (Bitbucket)</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9474;</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> <span class="br-feature">feat/parallel-3-agent-phase0-2</span> <span class="br-dim">&#9472;&#9472;</span> <span class="br-text">current feature branch</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9474;</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> <span class="br-worktree">worktree/builder-kuber</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">isolated build (Gate 4)</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9500;&#9472;</span> <span class="br-worktree">worktree/builder-pro</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">isolated build (Gate 4)</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span> <span class="br-worktree">worktree/builder-options</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">isolated build (Gate 4)</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9474;</span></div>
+        <div class="branch-line"><span class="br-dim">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;</span> <span class="br-develop">merge/scalper-unified</span> <span class="br-dim">&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</span> <span class="br-text">coinswitch_app merge</span></div>
+      </div>
+
+      <div class="info-box danger">
+        <span class="icon">&#128683;</span>
+        <div><strong>CRITICAL:</strong> Always branch worktrees from <code>flutter-migration-develop</code> HEAD. Never from main or an old commit. Old base = wrong paths, missing features, wasted work.</div>
+      </div>
+
+      <div class="section-header">Key Repos</div>
+      <table class="score-table">
+        <tr><th>Repo</th><th>Purpose</th><th>Path</th></tr>
+        <tr><td style="color:var(--green)">Bitbucket (active)</td><td>Production Flutter code</td><td><code>/Users/Apurv.Singh/bitbucketRepo/cs-india-react-mobile-v2</code></td></tr>
+        <tr><td style="color:var(--blue)">Web Remix</td><td>Web source (ground truth)</td><td><code>/Users/Apurv.Singh/coinswitch/coinswitch-pro</code></td></tr>
+        <tr><td style="color:var(--purple)">GraphQL</td><td>Transformer service</td><td><code>/Users/Apurv.Singh/csk-transformer-service</code></td></tr>
+        <tr><td style="color:var(--cyan)">Playwright</td><td>Test platform + crawls</td><td><code>/Users/Apurv.Singh/ai-living-test-platform</code></td></tr>
+        <tr><td style="color:var(--red)">GitLab (DEAD)</td><td>DO NOT USE</td><td><code style="text-decoration:line-through">/Users/Apurv.Singh/project2025/cs-india-react-mobileV2</code></td></tr>
+      </table>
+    </div>
+
+    <!-- ========== PR ========== -->
+    <div class="page" id="page-pr">
+      <div class="page-title">PR &amp; Code Review</div>
+      <div class="page-subtitle">From local commit to merged PR.</div>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--purple)">1</div>
+            <div class="flow-line" style="background:var(--purple)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Atomic Commits Per Gate</h4>
+            <p>Each gate completion = 1 commit. Message format: <code>feat(screen): gate N — description</code></p>
+            <div class="cmd-block" style="margin-top:8px">
+              <span class="prompt">$</span> git add lib/features/{screen}/<br>
+              <span class="prompt">$</span> git commit -m "feat(kuber_futures_home): gate 4 — build all sections, 7 tests"
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--blue)">2</div>
+            <div class="flow-line" style="background:var(--blue)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Push to Bitbucket</h4>
+            <p>Push feature branch. Target: <code>flutter-migration-develop</code>.</p>
+            <div class="cmd-block" style="margin-top:8px">
+              <span class="prompt">$</span> git push -u origin feat/parallel-3-agent-phase0-2
+            </div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--orange)">3</div>
+            <div class="flow-line" style="background:var(--orange)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>Create PR</h4>
+            <p>Title, summary with gate progression, test counts, parity scores. Code-reviewer agent runs automatically.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--green)">4</div>
+            <div class="flow-line" style="background:var(--green)"></div>
+          </div>
+          <div class="flow-content">
+            <h4>CI Checks</h4>
+            <p><code>flutter analyze</code> + <code>flutter test</code> + AAR build + regression check. All must be green.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-dot-col">
+            <div class="flow-dot" style="background:var(--yellow)">5</div>
+          </div>
+          <div class="flow-content">
+            <h4>Human Review &amp; Merge</h4>
+            <p>Developer reviews. Approves. Squash merge to <code>flutter-migration-develop</code>. Delete feature branch.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DEPLOY ========== -->
+    <div class="page" id="page-deploy">
+      <div class="page-title">Deploy &amp; OTA</div>
+      <div class="page-subtitle">Two paths: Shorebird OTA for Dart changes, full APK for native changes.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;border-top:3px solid var(--green)">
+          <h4 style="color:var(--green);margin-bottom:8px">Shorebird OTA (fast path)</h4>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Dart-only changes ship instantly. No app store review. Users get the patch on next app launch.</p>
+          <div class="cmd-block">
+            <span class="prompt">$</span> shorebird patch android<br>
+            <span class="comment"># Pushed manually (no CI for now)</span>
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-muted)">
+            <strong>When:</strong> UI fixes, provider logic, new screens, API changes<br>
+            <strong>Speed:</strong> Minutes from merge to user
+          </div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;border-top:3px solid var(--orange)">
+          <h4 style="color:var(--orange);margin-bottom:8px">Full APK Release (slow path)</h4>
+          <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Native changes (Android/iOS, MethodChannels, Flutter engine). Requires Play Store / App Store review.</p>
+          <div class="cmd-block">
+            <span class="prompt">$</span> flutter build aar <span class="flag">--no-profile</span><br>
+            <span class="prompt">$</span> cd android && ./gradlew assembleProductionRelease
+          </div>
+          <div style="margin-top:12px;font-size:12px;color:var(--text-muted)">
+            <strong>When:</strong> New MethodChannels, bridge changes, engine upgrade<br>
+            <strong>Speed:</strong> Days (app store review cycle)
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box tip">
+        <span class="icon">&#10004;</span>
+        <div><strong>Hot reload during development:</strong> Use <code>dev.sh</code> for Dart-only changes. Check <code>/tmp/dev_hot_reload.state</code> before building. Only full build for first install or native changes.</div>
+      </div>
+    </div>
+
+    <!-- ========== PARITY ========== -->
+    <div class="page" id="page-parity">
+      <div class="page-title">Parity Scoring: G1-G6</div>
+      <div class="page-subtitle">Six dimensions measured. Composite must be &#8805; 95% to pass.</div>
+
+      <table class="score-table">
+        <tr><th>Gate</th><th>Name</th><th>What It Measures</th><th>Threshold</th><th>Weight</th></tr>
+        <tr>
+          <td><strong style="color:var(--blue)">G1</strong></td>
+          <td>Scenario Fidelity</td>
+          <td>Step count + action types match web user flows</td>
+          <td class="score-pass">&#8805; 95%</td>
+          <td>20%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--blue)">G2</strong></td>
+          <td>Validation Rules</td>
+          <td>Form validation, input constraints, error messages</td>
+          <td class="score-pass">&#8805; 95%</td>
+          <td>15%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--purple)">G3</strong></td>
+          <td>API Fidelity</td>
+          <td>Same endpoints, headers (auth, X-Platform-Id, X-Device-ID), payloads</td>
+          <td class="score-pass">&#8805; 95%</td>
+          <td>25%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--green)">G4</strong></td>
+          <td>State Handling</td>
+          <td>All UI states (loading, empty, populated, error) handled</td>
+          <td class="score-pass">&#8805; 95%</td>
+          <td>20%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--orange)">G5</strong></td>
+          <td>Analytics Fidelity</td>
+          <td>Same events fired (Amplitude, CleverTap) with same properties</td>
+          <td class="score-warn">&#8805; 90%</td>
+          <td>10%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--cyan)">G6</strong></td>
+          <td>Performance</td>
+          <td>Transition &lt;500ms, order &lt;2000ms, scroll 60fps</td>
+          <td class="score-warn">&#8805; 80%</td>
+          <td>10%</td>
+        </tr>
+      </table>
+
+      <div class="section-header">Scoring Deductions</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="background:var(--red-bg);border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:14px">
+          <div style="font-size:24px;font-weight:700;color:var(--red)">-30</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px"><strong>Critical:</strong> Missing endpoint, broken auth, crash</div>
+        </div>
+        <div style="background:var(--orange-bg);border:1px solid rgba(210,153,34,0.2);border-radius:8px;padding:14px">
+          <div style="font-size:24px;font-weight:700;color:var(--orange)">-15</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px"><strong>Major:</strong> Wrong header, missing state, wrong navigation</div>
+        </div>
+        <div style="background:var(--yellow-bg);border:1px solid rgba(227,179,65,0.2);border-radius:8px;padding:14px">
+          <div style="font-size:24px;font-weight:700;color:var(--yellow)">-5</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:4px"><strong>Minor:</strong> Color shade off, 1px spacing, animation timing</div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Composite Formula</div>
+        <div style="font-family:'SF Mono',monospace;font-size:13px;color:var(--blue)">
+          composite = G1(0.20) + G2(0.15) + G3(0.25) + G4(0.20) + G5(0.10) + G6(0.10)
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Must be &#8805; 95% to mark screen as done_done.</div>
+      </div>
+    </div>
+
+    <!-- ========== COMMANDS ========== -->
+    <div class="page" id="page-commands">
+      <div class="page-title">Quick Reference: Commands</div>
+      <div class="page-subtitle">Copy-paste commands for every step of the workflow.</div>
+
+      <div class="section-header">Environment Setup</div>
+      <div class="cmd-block">
+        <span class="comment"># Flutter SDK on PATH</span><br>
+        <span class="prompt">$</span> export PATH="/opt/homebrew/bin:$PATH"<br><br>
+        <span class="comment"># Navigate to Flutter module (Bitbucket)</span><br>
+        <span class="prompt">$</span> cd /Users/Apurv.Singh/bitbucketRepo/cs-india-react-mobile-v2/flutter_module
+      </div>
+
+      <div class="section-header">Build &amp; Test</div>
+      <div class="cmd-block">
+        <span class="comment"># Analyze (must be 0 issues)</span><br>
+        <span class="prompt">$</span> flutter analyze<br><br>
+        <span class="comment"># Run tests</span><br>
+        <span class="prompt">$</span> flutter test<br><br>
+        <span class="comment"># Build AAR (ALWAYS before APK)</span><br>
+        <span class="prompt">$</span> flutter build aar <span class="flag">--no-profile</span><br><br>
+        <span class="comment"># Build APK (production debug)</span><br>
+        <span class="prompt">$</span> cd ../android && ./gradlew assembleProductionDebug
+      </div>
+
+      <div class="section-header">Device Testing</div>
+      <div class="cmd-block">
+        <span class="comment"># Full build-deploy-screenshot pipeline</span><br>
+        <span class="prompt">$</span> ./scripts/migration_verify.sh 00163357C000049 {screen_name}<br><br>
+        <span class="comment"># Manual screenshot (Z Flip6 — needs display ID)</span><br>
+        <span class="prompt">$</span> adb -s SERIAL exec-out screencap -d 4630946564756762243 -p > screenshot.png<br><br>
+        <span class="comment"># Install APK manually</span><br>
+        <span class="prompt">$</span> adb -s SERIAL install -r app-production-arm64-v8a-debug.apk<br><br>
+        <span class="comment"># Hot reload (Dart-only changes, no full rebuild)</span><br>
+        <span class="prompt">$</span> ./dev.sh <span class="flag">--send-reload</span>
+      </div>
+
+      <div class="section-header">Playwright</div>
+      <div class="cmd-block">
+        <span class="prompt">$</span> cd /Users/Apurv.Singh/ai-living-test-platform<br>
+        <span class="prompt">$</span> npm run crawl <span class="flag">--flow=</span>{flow_id}<br>
+        <span class="prompt">$</span> npm run parity:check <span class="flag">--scenario=</span>{scenario_id}
+      </div>
+
+      <div class="section-header">Git</div>
+      <div class="cmd-block">
+        <span class="comment"># Push to Bitbucket</span><br>
+        <span class="prompt">$</span> git push -u origin feat/parallel-3-agent-phase0-2<br><br>
+        <span class="comment"># Create worktree for isolated Gate 4 build</span><br>
+        <span class="prompt">$</span> git worktree add ../worktree-{screen} flutter-migration-develop<br><br>
+        <span class="comment"># Shorebird OTA patch (manual push)</span><br>
+        <span class="prompt">$</span> shorebird patch android
+      </div>
+
+      <div class="info-box danger" style="margin-top:16px">
+        <span class="icon">&#128683;</span>
+        <div><strong>NEVER use <code>adb input text</code></strong> — it triggered an accidental phone call. Use <code>adb shell input keyevent</code> codes only.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+
+  // Find and activate sidebar item
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    if (item.getAttribute('onclick') === "showPage('" + id + "')") {
+      item.classList.add('active');
+    }
+  });
+}
+</script>
+</body>
+</html>
